@@ -145,7 +145,7 @@ function stopLogoObserver() {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 9999px;
-  border: 3px solid rgba(148, 163, 184, 0.3);
+  border: 3px solid rgba(31, 7, 244, 0.3);
   border-top-color: rgba(244, 244, 245, 0.85);
   animation: spin 0.8s linear infinite;
 }

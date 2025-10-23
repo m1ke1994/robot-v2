@@ -50,7 +50,7 @@ onBeforeUnmount(() => {
 
     <!-- Контент поверх -->
     <div
-      class="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8"
+      class="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8 pointer-events-none"
     >
       <span
         class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]"

@@ -13,30 +13,38 @@ import SplineScene from '@/components/ui/SplineScene.vue';
       />
     </div>
 
-    <div
-      class="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8"
-    >
-      <span class="text-sm font-semibold uppercase tracking-[0.35em] text-teal-300/70">
-        Future Robotics Lab
-      </span>
-      <h1 class="text-4xl font-bold leading-tight md:text-6xl">
-        Intelligent Robots for Immersive Experiences
-      </h1>
-      <p class="text-base text-slate-200 md:text-lg">
-        Мы создаём цифровых роботов, которые помогают брендам общаться с аудиторией и оживляют любые
-        презентации. Наши решения сочетают 3D-дизайн, интерактивность и искусственный интеллект.
-      </p>
-      <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
-          Виртуальные ассистенты
-        </span>
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
-          Интерактивные презентации
-        </span>
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
-          3D-брендинг
-        </span>
-      </div>
-    </div>
+   <div
+  class="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8"
+>
+  <span class="text-lg font-semibold uppercase tracking-[0.35em] text-teal-300/70">
+    Инновационное Конструкторское Бюро
+  </span>
+
+  <h1 class="text-4xl font-bold leading-tight md:text-6xl">
+    Интеллектуальные системы и инженерные решения будущего
+  </h1>
+
+  <p class="text-base text-slate-200 md:text-lg">
+    Мы разрабатываем микроконтроллерные устройства, цифровые прототипы и системы управления нового поколения.
+    Команда ИКБ объединяет инженеров, программистов и конструкторов, создавая решения, где технологии становятся
+    продолжением человеческой идеи.
+  </p>
+
+  <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
+    <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
+      Встраиваемые системы
+    </span>
+    <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
+      R&D и прототипирование
+    </span>
+    <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
+      Индустриальный дизайн
+    </span>
+    <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur">
+      Искусственный интеллект
+    </span>
+  </div>
+</div>
+
   </section>
 </template>

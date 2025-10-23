@@ -1,37 +1,22 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import SplineScene from '@/components/ui/SplineScene.vue';
 
-const fullText = 'Технологии, которые соединяют идею и железо';
-const typedText = ref('');
-const speedMs =100;
-let timer: number | null = null;
+const heroHeading = 'Технологии, которые соединяют идею и железо';
+const isHeadingVisible = ref(false);
 
 onMounted(() => {
   const prefersReduced =
     window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
 
   if (prefersReduced) {
-    typedText.value = fullText;
+    isHeadingVisible.value = true;
     return;
   }
 
-  let index = 0;
-  timer = window.setInterval(() => {
-    typedText.value += fullText[index];
-    index += 1;
-
-    if (index >= fullText.length && timer) {
-      window.clearInterval(timer);
-      timer = null;
-    }
-  }, speedMs);
-});
-
-onBeforeUnmount(() => {
-  if (timer) {
-    window.clearInterval(timer);
-  }
+  requestAnimationFrame(() => {
+    isHeadingVisible.value = true;
+  });
 });
 </script>
 
@@ -53,17 +38,17 @@ onBeforeUnmount(() => {
         Инновационно-конструкторское бюро
       </span>
 
-      <h1 class="text-4xl font-bold leading-tight md:text-6xl">
-        <span class="ikb-type" aria-label="Технологии, которые соединяют идею и железо">
-          {{ typedText }}
+      <h1 class="text-4xl font-bold leading-tight md:text-6xl" :aria-label="heroHeading">
+        <span class="ikb-heading-text" :class="{ 'is-visible': isHeadingVisible }">
+          {{ heroHeading }}
         </span>
-        <span class="ikb-caret" aria-hidden="true" />
       </h1>
 
       <p class="text-base text-slate-200 md:text-lg">
-        Мы создаём цифровых и физических роботов для компаний, которые стремятся впечатлить
-        аудиторию и усилить бренд. Команда объединяет 3D-дизайнеров, инженеров и специалистов по ИИ,
-        чтобы переводить смелые идеи в прототипы и промышленное производство.
+        Мы создаём цифровых и физических роботов для команд, которые стремятся одновременно
+        впечатлять аудиторию и избавляться от рутины. В наших проектах дизайн, инженерия и
+        искусственный интеллект работают вместе, чтобы идеи быстрее становились реальными
+        продуктами.
       </p>
 
       <div class="pointer-events-auto">
@@ -109,17 +94,16 @@ onBeforeUnmount(() => {
   filter: blur(0.5px);
 }
 
-.ikb-type {
-  white-space: pre-wrap;
+.ikb-heading-text {
+  display: inline-block;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.75s ease, transform 0.75s ease;
 }
 
-.ikb-caret {
-  display: inline-block;
-  width: 0.6ch;
-  height: 1em;
-  translate: 0 0.08em;
-  border-right: 2px solid currentColor;
-  animation: ikb-caret-blink 1s steps(1, end) infinite;
+.ikb-heading-text.is-visible {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .ikb-button {
@@ -135,6 +119,7 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   font-weight: 600;
   text-decoration: none;
+  font-family: 'Gill Sans', 'Segoe UI', sans-serif;
   color: #0f172a;
   background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
   background-size: 300% 100%;
@@ -182,13 +167,14 @@ onBeforeUnmount(() => {
     animation: none;
   }
 
-  .ikb-button {
-    animation: none;
+  .ikb-heading-text {
+    transition: none;
+    opacity: 1;
+    transform: none;
   }
 
-  .ikb-caret {
+  .ikb-button {
     animation: none;
-    opacity: 1;
   }
 }
 
@@ -198,17 +184,6 @@ onBeforeUnmount(() => {
   }
   100% {
     background-position: 300% 50%;
-  }
-}
-
-@keyframes ikb-caret-blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
   }
 }
 </style>

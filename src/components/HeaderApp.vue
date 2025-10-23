@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-const menuItems = ["Home", "About", "Services", "Team", "Portfolio", "Contact"]
+const menuItems = ["Главная", "Решения и проекты", "О нас", "Сертификаты", "Контакты"]
 const isMenuOpen = ref(false)
 
 const toggleMenu = () => {
@@ -14,66 +14,75 @@ const closeMenu = () => {
 </script>
 
 <template>
-  <nav class="absolute inset-0 w-full bg-transparent">
-    <!-- Кнопка-бургер (только на мобильных) -->
-    <button
-      @click="toggleMenu"
-      class="md:hidden absolute top-6 right-6 z-20 p-2"
-      :aria-label="isMenuOpen ? 'Close menu' : 'Open menu'"
-    >
-      <div
-        class="w-6 h-0.5 bg-[#262626] mb-1.5 transition-transform duration-300"
-        :class="isMenuOpen ? 'rotate-45 translate-y-2' : ''"
-      />
-      <div
-        class="w-6 h-0.5 bg-[#262626] mb-1.5 transition-opacity duration-300"
-        :class="isMenuOpen ? 'opacity-0' : ''"
-      />
-      <div
-        class="w-6 h-0.5 bg-[#262626] transition-transform duration-300"
-        :class="isMenuOpen ? '-rotate-45 -translate-y-2' : ''"
-      />
-    </button>
-
-    <!-- Меню -->
+  <header
+    class="fixed top-0 left-0 z-50 w-full backdrop-blur-sm bg-white/5 border-b border-white/10"
+  >
     <div
-      :class="[
-        'flex items-center justify-center w-full h-full md:block md:h-auto md:pt-8',
-        isMenuOpen ? 'block' : 'hidden md:block'
-      ]"
+      class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:py-5"
     >
-      <ul
-        class="flex flex-col items-center space-y-6 md:flex-row md:space-y-0 md:space-x-4 md:justify-center lg:space-x-8"
-      >
-        <li
-          v-for="item in menuItems"
-          :key="item"
-          class="list-none"
+      <!-- ЛОГОТИП -->
+      <div class="text-3xl font-extrabold tracking-widest select-none">
+        <span
+          class="bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent"
         >
-          <a
-            href="#"
-            class="relative inline-block group"
-            @click="closeMenu"
+          IKB
+        </span>
+      </div>
+
+      <!-- КНОПКА-БУРГЕР (мобильная) -->
+      <button
+        @click="toggleMenu"
+        class="md:hidden p-2 relative z-20"
+        :aria-label="isMenuOpen ? 'Закрыть меню' : 'Открыть меню'"
+      >
+        <div
+          class="w-6 h-0.5 bg-white mb-1.5 transition-transform duration-300"
+          :class="isMenuOpen ? 'rotate-45 translate-y-2' : ''"
+        />
+        <div
+          class="w-6 h-0.5 bg-white mb-1.5 transition-opacity duration-300"
+          :class="isMenuOpen ? 'opacity-0' : ''"
+        />
+        <div
+          class="w-6 h-0.5 bg-white transition-transform duration-300"
+          :class="isMenuOpen ? '-rotate-45 -translate-y-2' : ''"
+        />
+      </button>
+
+      <!-- МЕНЮ -->
+      <nav
+        :class="[
+          'absolute left-0 top-full w-full bg-black/80 backdrop-blur-sm md:static md:w-auto md:bg-transparent md:backdrop-blur-none transition-all',
+          isMenuOpen ? 'block' : 'hidden md:block'
+        ]"
+      >
+        <ul
+          class="flex flex-col items-center space-y-6 py-6 md:flex-row md:space-y-0 md:space-x-8 md:py-0"
+        >
+          <li
+            v-for="item in menuItems"
+            :key="item"
           >
-            <!-- Текст ссылки -->
-            <span
-              class="relative z-10 block uppercase text-[#262626] font-sans font-semibold transition-colors duration-300 group-hover:text-white text-xl py-2 px-3 md:text-base md:py-2 md:px-3 lg:text-lg lg:py-2 lg:px-4"
+            <a
+              href="#"
+              class="relative uppercase font-semibold text-slate-200 transition-colors duration-300 hover:text-white after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0 after:bg-gradient-to-r after:from-cyan-400 after:to-indigo-400 after:transition-all after:duration-300 hover:after:w-full"
+              @click="closeMenu"
             >
               {{ item }}
-            </span>
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-            <!-- Верхняя и нижняя рамка -->
-            <span
-              class="absolute inset-0 border-t-2 border-b-2 border-[#262626] transform scale-y-[2] opacity-0 transition-all duration-300 origin-center group-hover:scale-y-100 group-hover:opacity-100"
-            />
-
-            <!-- Анимация фона -->
-            <span
-              class="absolute top-[2px] left-0 w-full h-full bg-[#262626] transform scale-0 opacity-0 transition-all duration-300 origin-top group-hover:scale-100 group-hover:opacity-100"
-            />
-          </a>
-        </li>
-      </ul>
+      <!-- КНОПКА "СВЯЗАТЬСЯ" -->
+      <div class="hidden md:block">
+        <a
+          href="#contact"
+          class="rounded-full border border-cyan-400 px-5 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-400/10 hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] transition-all duration-300"
+        >
+          Связаться
+        </a>
+      </div>
     </div>
-  </nav>
+  </header>
 </template>

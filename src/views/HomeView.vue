@@ -1,46 +1,44 @@
-<!-- src/views/HeroIKB.vue -->
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from "vue"
-import SplineScene from "@/components/ui/SplineScene.vue"
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import SplineScene from '@/components/ui/SplineScene.vue';
 
-const fullText =
-  "Интеллектуальные системы и инженерные решения будущего"
-
-const typedText = ref("")
-const speedMs = 100
-let timer: number | null = null
+const fullText = 'Технологии, которые соединяют идею и железо';
+const typedText = ref('');
+const speedMs =100;
+let timer: number | null = null;
 
 onMounted(() => {
   const prefersReduced =
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
 
   if (prefersReduced) {
-    typedText.value = fullText
-    return
+    typedText.value = fullText;
+    return;
   }
 
-  let i = 0
-  const tick = () => {
-    typedText.value += fullText[i]
-    i++
-    if (i >= fullText.length && timer) {
-      clearInterval(timer)
-      timer = null
+  let index = 0;
+  timer = window.setInterval(() => {
+    typedText.value += fullText[index];
+    index += 1;
+
+    if (index >= fullText.length && timer) {
+      window.clearInterval(timer);
+      timer = null;
     }
-  }
-  timer = window.setInterval(tick, speedMs)
-})
+  }, speedMs);
+});
 
 onBeforeUnmount(() => {
-  if (timer) clearInterval(timer)
-})
+  if (timer) {
+    window.clearInterval(timer);
+  }
+});
 </script>
 
 <template>
   <section
     class="relative flex min-h-screen w-full items-center justify-center overflow-hidden text-white"
   >
-    <!-- Фон (Spline сцена) -->
     <div class="absolute inset-0">
       <SplineScene
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
@@ -48,53 +46,43 @@ onBeforeUnmount(() => {
       />
     </div>
 
-    <!-- Контент поверх -->
     <div
-      class="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8 pointer-events-none"
+      class="pointer-events-none relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8"
     >
-      <span
-        class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]"
-      >
+      <span class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]">
         Инновационно-конструкторское бюро
       </span>
 
-      <h1
-        class="text-4xl font-bold leading-tight md:text-6xl"
-        aria-label="Интеллектуальные системы и инженерные решения будущего"
-      >
-        <span class="ikb-type">{{ typedText }}</span>
+      <h1 class="text-4xl font-bold leading-tight md:text-6xl">
+        <span class="ikb-type" aria-label="Технологии, которые соединяют идею и железо">
+          {{ typedText }}
+        </span>
         <span class="ikb-caret" aria-hidden="true" />
       </h1>
 
       <p class="text-base text-slate-200 md:text-lg">
-        Мы разрабатываем микроконтроллерные устройства, цифровые прототипы и
-        системы управления нового поколения. Команда ИКБ объединяет инженеров,
-        программистов и конструкторов, создавая решения, где технологии
-        становятся продолжением идеи.
+        Мы создаём цифровых и физических роботов для компаний, которые стремятся впечатлить
+        аудиторию и усилить бренд. Команда объединяет 3D-дизайнеров, инженеров и специалистов по ИИ,
+        чтобы переводить смелые идеи в прототипы и промышленное производство.
       </p>
 
-      <div
-        class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base"
-      >
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur"
-          >Встраиваемые системы</span
-        >
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur"
-          >R&D и прототипирование</span
-        >
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur"
-          >Индустриальный дизайн</span
-        >
-        <span class="rounded-full border border-white/20 px-4 py-2 backdrop-blur"
-          >Искусственный интеллект</span
-        >
+      <div class="pointer-events-auto">
+        <a href="#contact" class="ikb-button">
+          Связаться с нами
+        </a>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
+        <span class="ikb-chip">Встраиваемые системы</span>
+        <span class="ikb-chip">R&D и прототипирование</span>
+        <span class="ikb-chip">Индустриальный дизайн</span>
+        <span class="ikb-chip">Искусственный интеллект</span>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* ——— Подсветка названия ——— */
 .ikb-highlight {
   background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
   -webkit-background-clip: text;
@@ -105,8 +93,9 @@ onBeforeUnmount(() => {
   animation: ikb-shimmer 8s linear infinite;
   position: relative;
 }
+
 .ikb-highlight::after {
-  content: "";
+  content: '';
   position: absolute;
   left: 8%;
   right: 8%;
@@ -115,15 +104,15 @@ onBeforeUnmount(() => {
   background: radial-gradient(
     40% 120% at 50% 50%,
     rgba(99, 102, 241, 0.55),
-    rgba(99, 102, 241, 0) 70%
+    rgba(99, 102, 241, 0)
   );
   filter: blur(0.5px);
 }
 
-/* ——— Печатающийся текст и курсор ——— */
 .ikb-type {
   white-space: pre-wrap;
 }
+
 .ikb-caret {
   display: inline-block;
   width: 0.6ch;
@@ -133,18 +122,76 @@ onBeforeUnmount(() => {
   animation: ikb-caret-blink 1s steps(1, end) infinite;
 }
 
-/* Уважение к prefers-reduced-motion */
+.ikb-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-decoration: none;
+  color: #0f172a;
+  background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
+  background-size: 300% 100%;
+  box-shadow: 0 20px 45px -25px rgba(94, 234, 212, 0.65);
+  animation: ikb-shimmer 6s linear infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-position 0.3s;
+  isolation: isolate;
+}
+
+.ikb-button::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.08);
+  pointer-events: none;
+}
+
+.ikb-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 30px 60px -30px rgba(96, 165, 250, 0.75);
+}
+
+.ikb-button:focus-visible {
+  outline: 2px solid rgba(148, 163, 184, 0.35);
+  outline-offset: 3px;
+}
+
+.ikb-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(148, 163, 184, 0.08));
+  backdrop-filter: blur(14px);
+  color: rgba(241, 245, 249, 0.9);
+  text-shadow: 0 1px 12px rgba(15, 23, 42, 0.35);
+  letter-spacing: 0.02em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ikb-highlight {
     animation: none;
   }
+
+  .ikb-button {
+    animation: none;
+  }
+
   .ikb-caret {
     animation: none;
     opacity: 1;
   }
 }
 
-/* ——— Анимации ——— */
 @keyframes ikb-shimmer {
   0% {
     background-position: 0% 50%;
@@ -153,6 +200,7 @@ onBeforeUnmount(() => {
     background-position: 300% 50%;
   }
 }
+
 @keyframes ikb-caret-blink {
   0%,
   49% {

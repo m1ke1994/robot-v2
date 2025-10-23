@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import SplineScene from '@/components/ui/SplineScene.vue';
+import AboutIKB from '../components/AboutIKB.vue';
 
 const heroHeading = 'Технологии, которые соединяют идею и железо';
 const isHeadingVisible = ref(false);
@@ -21,10 +22,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <section
-    class="relative flex min-h-screen w-full items-center justify-center overflow-hidden text-white"
-  >
-    <div class="absolute inset-0">
+  <section class="Hero">
+  <div class="relative flex min-h-screen w-full items-center justify-center overflow-hidden text-white">
+ <div class="absolute inset-0">
       <SplineScene
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
         class="h-full w-full"
@@ -64,6 +64,11 @@ onMounted(() => {
         <span class="ikb-chip">Искусственный интеллект</span>
       </div>
     </div>
+  </div>
+   
+  </section>
+  <section class="about">
+    <AboutIKB />
   </section>
 </template>
 

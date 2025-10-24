@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import SplineScene from '@/components/ui/SplineScene.vue';
+import SplineScene from '../components/ui/SplineScene.vue';
 import AboutIKB from '../components/AboutIKB.vue';
 
 const heroHeading = 'Технологии, которые соединяют идею и железо';
@@ -23,7 +23,7 @@ onMounted(() => {
 
 <template>
   <section class="Hero">
-  <div class="relative flex min-h-screen w-full items-center justify-center overflow-hidden text-white">
+  <div class="relative flex min-h-screen w-full items-center justify-center overflow-hidden pt-28 pb-16 text-white md:pt-36 md:pb-20">
  <div class="absolute inset-0">
       <SplineScene
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"

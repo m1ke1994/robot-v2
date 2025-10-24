@@ -56,11 +56,9 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
     <div class="relative mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-12 md:gap-12 md:py-24">
       <!-- Левая часть: смысл и оффер -->
       <div class="md:col-span-7">
-        <span class="inline-block text-xs font-semibold tracking-[0.28em] text-cyan-300/80 uppercase">
-          Инновационное Конструкторское Бюро
-        </span>
+        
 
-        <h2 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
+        <h2 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-white md:text-3xl">
           Автоматизация бизнеса и производства,
           <span class="bg-gradient-to-r from-cyan-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
             которая повышает эффективность

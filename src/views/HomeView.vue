@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue';
 import SplineScene from '../components/ui/SplineScene.vue';
 import AboutIKB from '../components/AboutIKB.vue';
+import Certificates from '../components/Certificates.vue';
 import PartnersMarquee from '../components/PartnersMarquee.vue';
 import ScrollFramesCanvas from "../components/ScrollFramesCanvas.vue";
 const heroHeading = 'Технологии, которые соединяют идею и железо';
@@ -77,6 +78,9 @@ onMounted(() => {
       <PartnersMarquee />
     </div>
     <AboutIKB />
+  </section>
+  <section class="cert">
+    <Certificates />
   </section>
   <section class="frames ">
        <ScrollFramesCanvas

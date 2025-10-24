@@ -72,7 +72,7 @@ const isActive = (to: string) =>
       <!-- Лево: логотип + название (название только на десктопе) -->
       <RouterLink to="/" class="group flex items-center gap-3 min-w-0">
         <img src="/logo.svg" alt="Логотип" class="h-8 w-8 shrink-0 transition-transform group-hover:scale-105" />
-        <span class="hidden lg:block truncate text-base font-semibold tracking-wide text-[#0c1332]">
+        <span class="hidden lg:block truncate text-base font-semibold tracking-wide text-white/90">
           ИКБ
         </span>
       </RouterLink>
@@ -96,27 +96,24 @@ const isActive = (to: string) =>
         </a>
       </div>
 
-      <!-- Бургер (моб/планшет) -->
+      <!-- Бургер (моб/планшет) — ПЕРЕРАБОТАН -->
       <button
         id="burger-btn"
         class="lg:hidden relative h-10 w-10 rounded-md border border-white/10 hover:border-white/20 transition focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
         :aria-expanded="isOpen ? 'true' : 'false'"
         aria-controls="mobile-menu"
-        aria-label="Открыть меню"
+        :aria-label="isOpen ? 'Закрыть меню' : 'Открыть меню'"
         @click="toggle"
+        :data-open="isOpen ? '1' : '0'"
       >
-        <span class="absolute left-1/2 top-1/2 block h-0.5 w-6 -translate-x-1/2 -translate-y-[8px] bg-white transition [transform-origin:center]"
-              :class="isOpen ? 'rotate-45 translate-y-0' : ''" />
-        <span class="absolute left-1/2 top-1/2 block h-0.5 w-6 -translate-x-1/2 bg-white transition"
-              :class="isOpen ? 'opacity-0' : ''" />
-        <span class="absolute left-1/2 top-1/2 block h-0.5 w-6 -translate-x-1/2 translate-y-[8px] bg-white transition [transform-origin:center]"
-              :class="isOpen ? '-rotate-45 translate-y-0' : ''" />
+        <span class="burger-line line-top"></span>
+        <span class="burger-line line-mid"></span>
+        <span class="burger-line line-bot"></span>
       </button>
     </div>
 
-    <!-- Телепортируем оверлей и панель в body, чтобы никакие transform у родителей не ломали fixed -->
+    <!-- Телепорт -->
     <teleport to="body">
-      <!-- Оверлей -->
       <transition name="fade">
         <div
           v-show="isOpen"
@@ -125,7 +122,6 @@ const isActive = (to: string) =>
         />
       </transition>
 
-      <!-- Выезжающее меню -->
       <transition name="slide">
         <aside
           v-show="isOpen"
@@ -185,6 +181,7 @@ const isActive = (to: string) =>
 </template>
 
 <style scoped>
+/* Анимации оверлея/панели */
 @media (prefers-reduced-motion: no-preference) {
   .fade-enter-active, .fade-leave-active { transition: opacity 200ms ease; }
   .fade-enter-from, .fade-leave-to { opacity: 0; }
@@ -193,5 +190,46 @@ const isActive = (to: string) =>
 }
 @media (prefers-reduced-motion: reduce) {
   .fade-enter-active, .fade-leave-active, .slide-enter-active, .slide-leave-active { transition: none; }
+}
+
+/* ✅ Ровный крестик без «косины» */
+#burger-btn {
+  /* Чётные пиксели и собственный слой для минимума смаза */
+  --size: 24px;
+  --thick: 2px;
+  --offset: 6px; /* расстояние верхней/нижней полосы от центра в закрытом состоянии */
+}
+.burger-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size);
+  height: var(--thick);
+  background: white;
+  border-radius: 9999px;
+  transform-origin: 50% 50%;
+  /* базовое центрирование, дальше модифицируем */
+  transform: translate(-50%, -50%);
+  transition:
+    transform 220ms cubic-bezier(.2,.8,.2,1),
+    opacity 160ms ease;
+  will-change: transform, opacity;
+  -webkit-font-smoothing: antialiased;
+  backface-visibility: hidden;
+}
+.line-top { transform: translate(-50%, calc(-50% - var(--offset))); }
+.line-mid { opacity: 1; }
+.line-bot { transform: translate(-50%, calc(-50% + var(--offset))); }
+
+/* Открытое состояние — превращаемся в X строго 45° */
+#burger-btn[data-open="1"] .line-top {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+#burger-btn[data-open="1"] .line-mid {
+  opacity: 0;
+  transform: translate(-50%, -50%) scaleX(0.6);
+}
+#burger-btn[data-open="1"] .line-bot {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 </style>

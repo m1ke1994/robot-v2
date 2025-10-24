@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue';
 import SplineScene from '../components/ui/SplineScene.vue';
 import AboutIKB from '../components/AboutIKB.vue';
+import PartnersMarquee from '../components/PartnersMarquee.vue';
 
 const heroHeading = 'Технологии, которые соединяют идею и железо';
 const isHeadingVisible = ref(false);
@@ -64,15 +65,26 @@ onMounted(() => {
         <span class="ikb-chip">Искусственный интеллект</span>
       </div>
     </div>
+    <div class="hero-marquee">
+      <PartnersMarquee />
+    </div>
   </div>
-   
+  
   </section>
   <section class="about">
+    <div class="partners">
+      <PartnersMarquee />
+    </div>
     <AboutIKB />
   </section>
 </template>
 
 <style scoped>
+.partners{
+  position: absolute;
+  z-index: 100;
+  top: -50px;
+}
 
 .Hero {
   position: relative;
@@ -208,6 +220,29 @@ onMounted(() => {
   }
 }
 
+.hero-marquee {
+  position: absolute;
+  left: 50%;
+  bottom: -6.5rem;
+  transform: translateX(-50%);
+  width: min(92vw, 72rem);
+  z-index: 5;
+}
+
+.hero-marquee :deep(section) {
+  border-radius: 2.75rem;
+  background: linear-gradient(135deg, rgba(8, 13, 30, 0.85), rgba(15, 23, 42, 0.45));
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow:
+    0 30px 80px -45px rgba(2, 6, 23, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.hero-marquee :deep(.pointer-events-none.absolute.inset-0) {
+  background: linear-gradient(90deg, rgba(2, 6, 23, 0.9), transparent 30%, transparent 70%, rgba(2, 6, 23, 0.9));
+}
 
 .about {
   position: relative;

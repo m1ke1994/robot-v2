@@ -6,11 +6,11 @@ import HeaderApp from './components/HeaderApp.vue'
 
 <template>
   <div class="relative flex min-h-screen flex-col">
-    <div class="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,#ffffff,#000000)]"></div>
+    <div class="app-background pointer-events-none absolute inset-0 -z-10"></div>
 
     <HeaderApp />
 
-    <main class="mx-auto flex w-full max-w-5xl grow flex-col px-6 py-10 text-slate-100">
+    <main class="flex w-full grow flex-col text-slate-100">
       <RouterView />
     </main>
 
@@ -23,3 +23,12 @@ import HeaderApp from './components/HeaderApp.vue'
     </footer>
   </div>
 </template>
+
+<style scoped>
+.app-background {
+  background:
+    radial-gradient(140% 120% at 20% 0%, rgba(148, 163, 184, 0.24), transparent 55%),
+    radial-gradient(110% 110% at 80% 20%, rgba(59, 130, 246, 0.18), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(2, 6, 23, 0.8) 55%, #020617 100%);
+}
+</style>

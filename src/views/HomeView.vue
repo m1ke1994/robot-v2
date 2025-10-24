@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import SplineScene from '../components/ui/SplineScene.vue';
 import AboutIKB from '../components/AboutIKB.vue';
@@ -23,7 +23,7 @@ onMounted(() => {
 
 <template>
   <section class="Hero">
-  <div class="relative flex min-h-screen w-full items-center justify-center overflow-hidden pt-28 pb-16 text-white md:pt-36 md:pb-20">
+  <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
  <div class="absolute inset-0">
       <SplineScene
         scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
@@ -32,7 +32,7 @@ onMounted(() => {
     </div>
 
     <div
-      class="pointer-events-none relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center md:gap-8"
+      class="pointer-events-none relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-8 px-6 text-center sm:px-8 md:gap-10 lg:max-w-6xl lg:px-16"
     >
       <span class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]">
         Инновационно-конструкторское бюро
@@ -73,6 +73,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
+
+.Hero {
+  position: relative;
+  background: radial-gradient(140% 140% at 50% -20%, rgba(148, 163, 184, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.15) 0%, rgba(2, 6, 23, 0.85) 65%, #020617 100%);
+}
+
+.Hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(75% 75% at 50% 80%, rgba(15, 23, 42, 0.5), transparent 80%);
+}
+
 .ikb-highlight {
   background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
   -webkit-background-clip: text;
@@ -190,5 +206,30 @@ onMounted(() => {
   100% {
     background-position: 300% 50%;
   }
+}
+
+
+.about {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(160% 120% at 50% -15%, rgba(59, 130, 246, 0.12), transparent 70%),
+    linear-gradient(180deg, rgba(6, 11, 25, 0.96) 0%, rgba(8, 13, 30, 0.98) 45%, rgba(15, 23, 42, 1) 100%);
+}
+
+.about::before {
+  content: '';
+  position: absolute;
+  inset: -14rem -12% auto -12%;
+  height: clamp(8rem, 20vw, 15rem);
+  background: radial-gradient(75% 80% at 50% 100%, rgba(30, 58, 138, 0.35), transparent 70%);
+  filter: blur(60px);
+  opacity: 0.55;
+  z-index: 0;
+}
+
+.about > * {
+  position: relative;
+  z-index: 1;
 }
 </style>

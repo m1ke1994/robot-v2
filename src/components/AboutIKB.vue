@@ -28,10 +28,12 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
     :class="visible ? 'animate-in opacity-100 translate-x-0' : 'opacity-0 translate-x-6'"
   >
     <!-- лёгкие неоновые подсветки -->
-    <div
-      class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
-      style="background: radial-gradient(60% 60% at 50% 50%, rgba(34,211,238,0.18), transparent)"
-    ></div>
+   <div
+  class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
+  style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
+></div>
+
+
     <div
       class="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full blur-3xl"
       style="background: radial-gradient(60% 60% at 50% 50%, rgba(99,102,241,0.15), transparent)"
@@ -149,12 +151,33 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 
 <style scoped>
 .glass-card {
-  @apply rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm;
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: none;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.36));
+  backdrop-filter: blur(32px) saturate(130%);
+  -webkit-backdrop-filter: blur(32px) saturate(130%);
+  box-shadow:
+    inset 0 0 0 1px rgba(148, 163, 184, 0.04),
+    0 45px 120px -70px rgba(3, 7, 18, 0.95);
+  isolation: isolate;
 }
 
 .feature {
-  @apply rounded-2xl p-5 border bg-white/5 backdrop-blur-sm;
-  border-color: rgba(255,255,255,0.06);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: none;
+  padding: 1.5rem;
+  background: linear-gradient(150deg, rgba(6, 13, 28, 0.7), rgba(15, 23, 42, 0.4));
+  backdrop-filter: blur(32px) saturate(130%);
+  -webkit-backdrop-filter: blur(32px) saturate(130%);
+  box-shadow:
+    inset 0 0 0 1px rgba(148, 163, 184, 0.05),
+    0 55px 140px -80px rgba(3, 7, 18, 0.9);
+  isolation: isolate;
 }
 
 .stat { @apply flex flex-col; }
@@ -162,11 +185,58 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 .stat-label { @apply mt-1 text-xs text-neutral-400; }
 
 .visual {
-  @apply overflow-hidden rounded-3xl border border-white/10 backdrop-blur-md;
-  background: rgba(255,255,255,0.03);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.9rem;
+  border: none;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.32));
+  backdrop-filter: blur(4px) saturate(135%);
+  -webkit-backdrop-filter: blur(34px) saturate(135%);
+  box-shadow:
+    inset 0 0 0 1px rgba(148, 163, 184, 0.05),
+    0 60px 150px -90px rgba(3, 7, 18, 0.9);
+  isolation: isolate;
 }
 .visual-header {
-  @apply flex items-center gap-2 border-b border-white/10 px-4 py-3;
+  @apply flex items-center gap-2 px-4 py-3;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), transparent);
+}
+.glass-card::before,
+.glass-card::after,
+.feature::before,
+.feature::after,
+.visual::before,
+.visual::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-card::before,
+.feature::before,
+.visual::before {
+  inset: -38% -45% -58%;
+  background: radial-gradient(75% 75% at 50% 30%, rgba(94, 234, 212, 0.16), transparent 72%);
+  filter: blur(48px);
+  opacity: 0.6;
+}
+
+.glass-card::after,
+.feature::after,
+.visual::after {
+  inset: -52% -55% -32%;
+  background: radial-gradient(85% 85% at 70% 82%, rgba(59, 130, 246, 0.18), transparent 78%);
+  filter: blur(60px);
+  opacity: 0.45;
+}
+
+.glass-card > *,
+.feature > *,
+.visual > * {
+  position: relative;
+  z-index: 1;
 }
 .visual-header .dot {
   @apply inline-block h-2 w-2 rounded-full;
@@ -176,7 +246,17 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 .visual-body { @apply p-5; }
 
 .chip {
-  @apply rounded-full border px-3 py-1 text-neutral-200 border-white/10 bg-white/5;
+  position: relative;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.4rem 1.1rem;
+  color: rgba(226, 232, 240, 0.92);
+  background: linear-gradient(120deg, rgba(148, 163, 184, 0.18), rgba(148, 163, 184, 0.06));
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 18px 40px -26px rgba(15, 23, 42, 0.78);
 }
 
 .divider {

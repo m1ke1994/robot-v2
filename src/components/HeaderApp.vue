@@ -137,7 +137,7 @@ const isActive = (to: string) =>
           <!-- Шапка панели -->
           <div class="mb-6 flex items-center justify-between">
             <RouterLink to="/" class="flex items-center gap-3" @click="close">
-              <img src="/logo.svg" alt="Логотип" class="h-8 w-8" />
+              <img src="/public/logo.svg" alt="Логотип" class="h-8 w-8" />
               <span class="text-sm font-semibold text-white/90">ИКБ</span>
             </RouterLink>
             <button

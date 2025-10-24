@@ -150,6 +150,21 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 </template>
 
 <style scoped>
+#about-ikb {
+  position: relative;
+  background: radial-gradient(140% 140% at 50% -20%, rgba(148, 163, 184, 0.1), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.15) 0%, rgba(2, 6, 23, 0.85) 65%, #020617 100%);
+}
+
+#about-ikb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(75% 75% at 50% 80%, rgba(15, 23, 42, 0.5), transparent 80%);
+}
+
 .glass-card {
   position: relative;
   overflow: hidden;

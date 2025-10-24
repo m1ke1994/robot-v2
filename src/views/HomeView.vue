@@ -211,25 +211,5 @@ onMounted(() => {
 
 .about {
   position: relative;
-  isolation: isolate;
-  background:
-    radial-gradient(160% 120% at 50% -15%, rgba(59, 130, 246, 0.12), transparent 70%),
-    linear-gradient(180deg, rgba(6, 11, 25, 0.96) 0%, rgba(8, 13, 30, 0.98) 45%, rgba(15, 23, 42, 1) 100%);
-}
-
-.about::before {
-  content: '';
-  position: absolute;
-  inset: -14rem -12% auto -12%;
-  height: clamp(8rem, 20vw, 15rem);
-  background: radial-gradient(75% 80% at 50% 100%, rgba(30, 58, 138, 0.35), transparent 70%);
-  filter: blur(60px);
-  opacity: 0.55;
-  z-index: 0;
-}
-
-.about > * {
-  position: relative;
-  z-index: 1;
 }
 </style>

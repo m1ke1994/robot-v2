@@ -1,6 +1,7 @@
 ﻿<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import SplineScene from '../components/ui/SplineScene.vue';
+import ProjectsIKB from '../components/ProjectsIKB.vue';
 import AboutIKB from '../components/AboutIKB.vue';
 import Certificates from '../components/Certificates.vue';
 import PartnersMarquee from '../components/PartnersMarquee.vue';
@@ -24,7 +25,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="Hero">
+  <section class="Hero" id="Hero">
  
   <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
  <div class="absolute inset-0">
@@ -73,16 +74,19 @@ onMounted(() => {
   </div>
   
   </section>
-  <section class="about">
+  <section class="about" id="about">
     <div class="partners">
       <PartnersMarquee />
     </div>
     <AboutIKB />
   </section>
-  <section class="cert">
+  <section class="cert" id="cert">
     <Certificates />
   </section>
-  <section class="frames ">
+  <section id="projects">
+    <ProjectsIKB />
+  </section>
+  <section class="frames " id="frames">
        <ScrollFramesCanvas
     basePath="/frames"
     :frameCount="204"   

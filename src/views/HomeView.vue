@@ -83,7 +83,7 @@ onMounted(() => {
 .partners{
   width: 100%;
   position: absolute;
-  z-index: 100;
+  z-index: 30;
   top: -50px;
 }
 

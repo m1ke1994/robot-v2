@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue"
 
-
 type Cert = {
   src: string
   title: string
@@ -92,12 +91,16 @@ function lockScroll(state: boolean) {
 </script>
 
 <template>
-  <section id="certs" class="relative py-16 px-4 md:px-8 lg:px-12 overflow-hidden">
-    <!-- мягкое фоновое свечение -->
+  <section id="certs" class="relative overflow-hidden py-16 px-4 md:px-8 lg:px-12">
+    <!-- те же мягкие неоновые подсветки, что в AboutIKB -->
     <div
-      class="pointer-events-none absolute -right-20 top-0 h-96 w-96 rounded-full blur-3xl opacity-25"
-      style="background: radial-gradient(40% 40% at 50% 50%, rgba(34,211,238,0.2), transparent)"
-    ></div>
+      class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
+      style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
+    />
+    <div
+      class="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full blur-3xl"
+      style="background: radial-gradient(60% 60% at 50% 50%, rgba(99,102,241,0.15), transparent)"
+    />
 
     <div class="relative z-10 mx-auto max-w-6xl text-slate-100">
       <header class="mb-10 text-center">
@@ -209,6 +212,23 @@ function lockScroll(state: boolean) {
 </template>
 
 <style scoped>
+/* === Фон секции — тот же подход, что в AboutIKB === */
+#certs {
+  position: relative;
+  background:
+    radial-gradient(140% 140% at 50% -20%, rgba(7, 12, 28, 0.35), transparent 60%),
+    linear-gradient(360deg, #020617 0%, rgba(2, 6, 23, 0.82) 55%, rgba(15, 23, 42, 0.35) 100%);
+}
+#certs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(80% 85% at 50% 90%, rgba(15, 23, 42, 0.48), transparent 80%);
+}
+
+/* ховер-свечения карточек */
 article::after {
   content:"";
   position:absolute; inset:0;

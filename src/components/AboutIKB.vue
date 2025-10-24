@@ -3,6 +3,7 @@
 import { onMounted, onBeforeUnmount, ref } from "vue"
 
 const visible = ref(false)
+const isMobile = ref(false)
 
 const onScroll = () => {
   const el = document.getElementById("about-ikb")
@@ -15,9 +16,18 @@ const onScroll = () => {
 }
 
 onMounted(() => {
-  window.addEventListener("scroll", onScroll, { passive: true })
-  requestAnimationFrame(onScroll)
+  // считаем мобильным ≤ 640px (sm в Tailwind)
+  isMobile.value = window.innerWidth <= 640
+
+  if (isMobile.value) {
+    // на мобильном — без анимации и без ожидания скролла
+    visible.value = true
+  } else {
+    window.addEventListener("scroll", onScroll, { passive: true })
+    requestAnimationFrame(onScroll)
+  }
 })
+
 onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 </script>
 
@@ -25,7 +35,12 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
   <section
     id="about-ikb"
     class="relative overflow-hidden bg-transparent backdrop-blur-sm"
-    :class="visible ? 'animate-in opacity-100 translate-x-0' : 'opacity-0 translate-x-6'"
+    :class="
+      visible
+        ? // на мобильном показываем сразу без класса анимации
+          (isMobile ? 'opacity-100 translate-x-0' : 'animate-in opacity-100 translate-x-0')
+        : 'opacity-0 translate-x-6'
+    "
   >
     <!-- лёгкие неоновые подсветки -->
     <div
@@ -387,6 +402,13 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 
 /* ====== Мобильные мелочи ====== */
 @media (max-width: 640px) {
+  /* на мобильном полностью отключаем анимацию как fallback,
+     даже если класс случайно попадёт */
+  .animate-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
   .visual-body { padding: .9rem; }
   .chip { padding: .35rem .85rem; font-size: .8rem; }
 }

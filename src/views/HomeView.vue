@@ -78,9 +78,9 @@ onMounted(() => {
     </div>
     <AboutIKB />
   </section>
-  <section class="frames">
+  <section class="frames ">
        <ScrollFramesCanvas
-    basePath="/public/frames"
+    basePath="/frames"
     :frameCount="204"   
     basename="frame_"
     ext="webp"

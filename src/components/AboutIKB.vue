@@ -152,8 +152,8 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 <style scoped>
 #about-ikb {
   position: relative;
-  background: radial-gradient(140% 140% at 50% -20%, rgba(148, 163, 184, 0.1), transparent 60%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.15) 0%, rgba(2, 6, 23, 0.85) 65%, #020617 100%);
+  background: radial-gradient(140% 140% at 50% -20%, rgba(7, 12, 28, 0.35), transparent 60%),
+    linear-gradient(180deg, #020617 0%, rgba(2, 6, 23, 0.82) 55%, rgba(15, 23, 42, 0.35) 100%);
 }
 
 #about-ikb::before {
@@ -162,7 +162,7 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(75% 75% at 50% 80%, rgba(15, 23, 42, 0.5), transparent 80%);
+  background: radial-gradient(80% 85% at 50% 90%, rgba(15, 23, 42, 0.48), transparent 80%);
 }
 
 .glass-card {

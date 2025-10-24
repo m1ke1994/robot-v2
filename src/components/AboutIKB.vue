@@ -28,11 +28,10 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
     :class="visible ? 'animate-in opacity-100 translate-x-0' : 'opacity-0 translate-x-6'"
   >
     <!-- лёгкие неоновые подсветки -->
-   <div
-  class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
-  style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
-></div>
-
+    <div
+      class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
+      style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
+    ></div>
 
     <div
       class="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full blur-3xl"
@@ -40,74 +39,80 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
     ></div>
 
     <div class="relative mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-12 md:gap-12 md:py-24">
-      <!-- Левая часть: текст -->
+      <!-- Левая часть: смысл и оффер -->
       <div class="md:col-span-7">
         <span class="inline-block text-xs font-semibold tracking-[0.28em] text-cyan-300/80 uppercase">
           Инновационное Конструкторское Бюро
         </span>
 
         <h2 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-white md:text-4xl">
-          Интеллектуальные системы и инженерия, которые
+          Автоматизация бизнеса и производства,
           <span class="bg-gradient-to-r from-cyan-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
-            работают в реальном мире
+            которая повышает эффективность
           </span>
         </h2>
 
         <p class="mt-5 text-base leading-7 text-neutral-300 md:text-lg md:leading-8">
-          Мы создаём микроконтроллерные устройства нового поколения: надёжные, безопасные и умные.
-          Команда инженеров-электронщиков, программистов и конструкторов превращает идеи в реальные
-          устройства — от прототипа до рабочей модели. Конфиденциальность и безопасность встроены
-          в процесс: NDA, архитектурный аудит и контроль поставок.
+          Проектируем и внедряем цифровые решения под ключ: от датчиков и роботов до MES/ERP-интеграций,
+          SCADA и промышленного IoT. Сокращаем простой, исключаем ручные ошибки и делаем процесс управляемым
+          данными — с измеримой экономией и безопасностью по умолчанию.
         </p>
 
+        <!-- Три ключевых обещания -->
         <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Инновационность</div>
-            <p class="mt-1 text-sm text-neutral-300">R&amp;D, быстрые итерации, доказуемая инженерия.</p>
+            <div class="text-sm font-semibold text-white">Производство быстрее</div>
+            <p class="mt-1 text-sm text-neutral-300">Снижение цикла и простоев, рост OEE.</p>
           </div>
           <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Конфиденциальность</div>
-            <p class="mt-1 text-sm text-neutral-300">NDA, compartmentalization, приватность заказчика.</p>
+            <div class="text-sm font-semibold text-white">Гарантии безопасности</div>
+            <p class="mt-1 text-sm text-neutral-300">NDA, аудит архитектуры, контроль поставок.</p>
           </div>
           <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Безопасность</div>
-            <p class="mt-1 text-sm text-neutral-300">Аудит, отказоустойчивость, стресс-тесты и QA.</p>
+            <div class="text-sm font-semibold text-white">Измеримый эффект</div>
+            <p class="mt-1 text-sm text-neutral-300">KPI: OEE, MTBF/MTTR, энергопрофиль, брак.</p>
           </div>
         </div>
 
+        <!-- Услуги/направления -->
         <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="feature">
-            <h3>Встраиваемые системы</h3>
-            <p>MCU/RTOS, драйверы, периферия, управление питанием, boot и обновления.</p>
+            <h3>PLC/SCADA &amp; HMI</h3>
+            <p>Проектирование, визуализация, тревоги, рецепты, отчётность. Поддержка модулей безопасности.</p>
           </div>
           <div class="feature">
-            <h3>Прототипирование</h3>
-            <p>Схемотехника, PCB, bring-up, лабораторные испытания и метрология.</p>
+            <h3>MES/ERP-интеграции</h3>
+            <p>Сопровождение потока данных: цех → MES → ERP. API, шины данных, шифрование.</p>
           </div>
           <div class="feature">
-            <h3>Алгоритмы и ПО</h3>
-            <p>Сигнальная обработка, телеметрия, прошивки, интеграция с API.</p>
+            <h3>Роботизация &amp; Визия</h3>
+            <p>Манипуляторы, конвейеры, машинное зрение, контроль качества в реальном времени.</p>
           </div>
           <div class="feature">
-            <h3>Инжиниринг под NDA</h3>
-            <p>Архитектурный аудит, threat-modeling, документация, пилоты.</p>
+            <h3>Промышленный IoT</h3>
+            <p>Датчики, телеметрия, предиктивная аналитика отказов, дашборды KPI.</p>
           </div>
         </div>
 
+        <!-- Статы/маркеры доверия -->
         <div class="mt-10 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-10">
           <div class="stat">
             <span class="stat-num">2008→</span>
             <span class="stat-label">опыт ядра команды</span>
           </div>
           <div class="stat">
-            <span class="stat-num">R&amp;D</span>
-            <span class="stat-label">циклы ≤ 4 недели</span>
+            <span class="stat-num">≤ 4 нед.</span>
+            <span class="stat-label">R&amp;D-итерации</span>
+          </div>
+          <div class="stat">
+            <span class="stat-num">24/7</span>
+            <span class="stat-label">мониторинг и алерты</span>
           </div>
           <a
             href="#contact"
             class="group inline-flex items-center gap-2 rounded-full border border-cyan-400/60 px-5 py-2 text-sm font-medium text-cyan-200 transition-all hover:border-cyan-300 hover:bg-cyan-400/10 hover:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
           >
-            Связаться с ИКБ
+            Обсудить задачу
             <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none">
               <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -115,33 +120,94 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
         </div>
       </div>
 
-      <!-- Правая визуальная часть -->
+      <!-- Правая часть: мини-кейсы + стек -->
       <div class="md:col-span-5">
         <div class="visual">
           <div class="visual-header">
             <span class="dot" />
             <span class="dot" />
             <span class="dot" />
-            <span class="title">IKB • Systems</span>
+            <span class="title">IKB • Automation</span>
           </div>
 
           <div class="visual-body">
+            <!-- Короткие кейсы -->
+            <div class="grid grid-cols-1 gap-3">
+              <div class="case-card">
+                <div class="case-head">
+                  <span class="badge">Производство пищевой</span>
+                  <span class="delta good">-18% простоев</span>
+                </div>
+                <p class="case-text">
+                  SCADA + датчики вибрации и температуры. Предиктивные алерты → сокращение аварийных остановок.
+                </p>
+              </div>
+              <div class="case-card">
+                <div class="case-head">
+                  <span class="badge">Сборка электроники</span>
+                  <span class="delta good">-32% брака</span>
+                </div>
+                <p class="case-text">
+                  Камеры машинного зрения, контроль пайки и маркировки. Автосортировка на конвейере.
+                </p>
+              </div>
+              <div class="case-card">
+                <div class="case-head">
+                  <span class="badge">Логистика</span>
+                  <span class="delta good">+21% OEE</span>
+                </div>
+                <p class="case-text">
+                  Интеграция WMS/ERP + терминалы. Балансировка линий, тайм-слоты отгрузок, live-дашборды.
+                </p>
+              </div>
+            </div>
+
+            <div class="divider" />
+
+            <!-- Стек/компетенции -->
             <ul class="grid grid-cols-2 gap-3 text-sm">
-              <li class="chip">MCU / RTOS</li>
-              <li class="chip">Boot &amp; OTA</li>
-              <li class="chip">DSP / Sensors</li>
-              <li class="chip">PCB &amp; EMC</li>
-              <li class="chip">Secure Chain</li>
-              <li class="chip">Telemetry</li>
+              <li class="chip">PLC / SCADA</li>
+              <li class="chip">HMI &amp; Alarms</li>
+              <li class="chip">MES / ERP</li>
+              <li class="chip">IIoT / MQTT</li>
+              <li class="chip">Vision / AI</li>
+              <li class="chip">Cyber-Safe</li>
             </ul>
 
             <div class="divider" />
 
-            <p class="text-sm text-neutral-300">
-              Архитектура — не слайд в презентации, а контракт на надёжность.
-              Мы проверяем гипотезы на столе и в поле, собирая метрики, которые важны: стабильность,
-              энергопрофиль, помехоустойчивость. Так рождаются системы, которым доверяют.
-            </p>
+            <!-- 4 шага внедрения -->
+            <ol class="steps">
+              <li>
+                <span class="num">1</span>
+                <div>
+                  <div class="step-title">Диагностика</div>
+                  <div class="step-text">Измеряем: узкие места, данные, риски безопасности.</div>
+                </div>
+              </li>
+              <li>
+                <span class="num">2</span>
+                <div>
+                  <div class="step-title">Архитектура</div>
+                  <div class="step-text">Схема потоков, точки интеграции, KPI и SLA.</div>
+                </div>
+              </li>
+              <li>
+                <span class="num">3</span>
+                <div>
+                  <div class="step-title">Пилот</div>
+                  <div class="step-text">Минимальный охват, обучение, контроль метрик.</div>
+                </div>
+              </li>
+              <li>
+                <span class="num">4</span>
+                <div>
+                  <div class="step-title">Масштабирование</div>
+                  <div class="step-text">Роллаут, документация, 24/7 мониторинг.</div>
+                </div>
+              </li>
+            </ol>
+
           </div>
         </div>
       </div>
@@ -150,12 +216,12 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 </template>
 
 <style scoped>
+/* ====== ФОН — не меняем ====== */
 #about-ikb {
   position: relative;
   background: radial-gradient(140% 140% at 50% -20%, rgba(7, 12, 28, 0.35), transparent 60%),
     linear-gradient(180deg, #020617 0%, rgba(2, 6, 23, 0.82) 55%, rgba(15, 23, 42, 0.35) 100%);
 }
-
 #about-ikb::before {
   content: '';
   position: absolute;
@@ -165,6 +231,7 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
   background: radial-gradient(80% 85% at 50% 90%, rgba(15, 23, 42, 0.48), transparent 80%);
 }
 
+/* ====== Карточки и стек ====== */
 .glass-card {
   position: relative;
   overflow: hidden;
@@ -194,10 +261,12 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
     0 55px 140px -80px rgba(3, 7, 18, 0.9);
   isolation: isolate;
 }
+.feature h3 { font-weight: 600; color: #fff; margin-bottom: .25rem; font-size: 0.95rem; }
+.feature p  { color: rgba(226,232,240,.9); font-size: .9rem; line-height: 1.35rem; }
 
-.stat { @apply flex flex-col; }
-.stat-num { @apply text-2xl font-semibold leading-none text-white; }
-.stat-label { @apply mt-1 text-xs text-neutral-400; }
+.stat { display: flex; flex-direction: column; }
+.stat-num { font-size: 1.25rem; font-weight: 600; line-height: 1; color: #fff; }
+.stat-label { margin-top: .25rem; font-size: .75rem; color: #94a3b8; }
 
 .visual {
   position: relative;
@@ -213,52 +282,16 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
   isolation: isolate;
 }
 .visual-header {
-  @apply flex items-center gap-2 px-4 py-3;
+  display: flex; align-items: center; gap: .5rem; padding: .75rem 1rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.08);
   background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), transparent);
 }
-.glass-card::before,
-.glass-card::after,
-.feature::before,
-.feature::after,
-.visual::before,
-.visual::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.glass-card::before,
-.feature::before,
-.visual::before {
-  inset: -38% -45% -58%;
-  background: radial-gradient(75% 75% at 50% 30%, rgba(94, 234, 212, 0.16), transparent 72%);
-  filter: blur(48px);
-  opacity: 0.6;
-}
-
-.glass-card::after,
-.feature::after,
-.visual::after {
-  inset: -52% -55% -32%;
-  background: radial-gradient(85% 85% at 70% 82%, rgba(59, 130, 246, 0.18), transparent 78%);
-  filter: blur(60px);
-  opacity: 0.45;
-}
-
-.glass-card > *,
-.feature > *,
-.visual > * {
-  position: relative;
-  z-index: 1;
-}
 .visual-header .dot {
-  @apply inline-block h-2 w-2 rounded-full;
+  display:inline-block; width: .5rem; height: .5rem; border-radius: 9999px;
   background: linear-gradient(to right, #22d3ee, #6366f1);
 }
-.visual-header .title { @apply ml-2 text-xs font-medium text-neutral-200; }
-.visual-body { @apply p-5; }
+.visual-header .title { margin-left: .5rem; font-size: .75rem; font-weight: 500; color: #e5e7eb; }
+.visual-body { padding: 1.1rem; }
 
 .chip {
   position: relative;
@@ -272,13 +305,77 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.06),
     0 18px 40px -26px rgba(15, 23, 42, 0.78);
+  white-space: nowrap;
 }
 
 .divider {
-  @apply my-5 h-px w-full;
+  margin: 1rem 0; height: 1px; width: 100%;
   background: linear-gradient(90deg, transparent, rgba(148,163,184,0.35), transparent);
 }
 
+/* ====== Кейсы ====== */
+.case-card {
+  border-radius: 1.2rem;
+  background: linear-gradient(145deg, rgba(2,6,23,0.55), rgba(15,23,42,0.35));
+  padding: .9rem 1rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(148, 163, 184, 0.06),
+    0 25px 70px -50px rgba(3,7,18,0.8);
+}
+.case-head {
+  display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-bottom:.35rem;
+}
+.badge {
+  font-size: .7rem; color: #e2e8f0; padding: .15rem .5rem; border-radius: 9999px;
+  background: linear-gradient(120deg, rgba(148, 163, 184, 0.22), rgba(148, 163, 184, 0.08));
+}
+.delta.good { color: #86efac; font-weight: 600; font-size: .8rem; }
+.case-text { color: rgba(226,232,240,.9); font-size: .9rem; line-height: 1.35rem; }
+
+/* ====== Шаги внедрения ====== */
+.steps { display: grid; grid-template-columns: 1fr; gap: .65rem; margin-top:.25rem; }
+.steps li { display:flex; gap:.6rem; align-items:flex-start; }
+.num {
+  display:inline-grid; place-items:center; width:1.35rem; height:1.35rem; border-radius:9999px;
+  background: linear-gradient(120deg, rgba(59,130,246,.35), rgba(34,211,238,.35));
+  color:#fff; font-size:.8rem; font-weight:600;
+}
+.step-title { color:#fff; font-weight:600; font-size:.9rem; line-height:1.2rem; }
+.step-text { color: rgba(226,232,240,.9); font-size:.85rem; line-height:1.2rem; }
+
+/* ====== Световые мазки для карточек ====== */
+.glass-card::before,
+.glass-card::after,
+.feature::before,
+.feature::after,
+.visual::before,
+.visual::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+.glass-card::before,
+.feature::before,
+.visual::before {
+  inset: -38% -45% -58%;
+  background: radial-gradient(75% 75% at 50% 30%, rgba(94, 234, 212, 0.16), transparent 72%);
+  filter: blur(48px);
+  opacity: 0.6;
+}
+.glass-card::after,
+.feature::after,
+.visual::after {
+  inset: -52% -55% -32%;
+  background: radial-gradient(85% 85% at 70% 82%, rgba(59, 130, 246, 0.18), transparent 78%);
+  filter: blur(60px);
+  opacity: 0.45;
+}
+.glass-card > *,
+.feature > *,
+.visual > * { position: relative; z-index: 1; }
+
+/* ====== Анимация входа ====== */
 @keyframes slidefade {
   from { opacity: 0; transform: translateX(24px); }
   to { opacity: 1; transform: translateX(0); }
@@ -286,5 +383,11 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 .animate-in {
   animation: slidefade 700ms cubic-bezier(.2,.75,.25,1) 40ms both;
   will-change: transform, opacity;
+}
+
+/* ====== Мобильные мелочи ====== */
+@media (max-width: 640px) {
+  .visual-body { padding: .9rem; }
+  .chip { padding: .35rem .85rem; font-size: .8rem; }
 }
 </style>

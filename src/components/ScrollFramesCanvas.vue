@@ -215,10 +215,11 @@ onMounted(async () => {
   if (stickyEl.value) {
     io = new IntersectionObserver(
       (entries) => {
-        isActive.value = entries.some((e) => e.isIntersecting)
-        if (isActive.value && !rafId) {
+        const visible = entries.some((e) => e.isIntersecting)
+        isActive.value = visible
+        if (visible && !rafId) {
           rafId = requestAnimationFrame(loop)
-        } else if (!isActive.value && rafId) {
+        } else if (!visible && rafId) {
           cancelAnimationFrame(rafId)
           rafId = 0
         }
@@ -285,15 +286,6 @@ async function onSubmit(e: Event) {
       email: email.value.trim(),
       phone: phone.value.replace(/\s+/g, "").trim(),
     }
-
-    // Пример реального запроса:
-    // const res = await fetch("/api/contact", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(payload),
-    // })
-    // if (!res.ok) throw new Error("Не удалось отправить форму")
-
     emit("submit", payload)
     formVisible.value = false
   } catch (err) {
@@ -317,7 +309,7 @@ function scrollToEnd() {
   <section
     ref="containerEl"
     class="relative w-full bg-transparent"
-    :style="{ height: `${durationVH}vh` }"
+    :style="{ height: `${props.durationVH}vh` }"
   >
     <!-- Приклеенный холст без фона -->
     <div ref="stickyEl" class="sticky top-0 h-[100vh] w-full" style="contain: strict">
@@ -327,12 +319,17 @@ function scrollToEnd() {
         aria-label="Scroll-driven animation"
       />
 
-      <!-- Верхний прогресс-бар -->
-      <div class="pointer-events-none absolute left-0 right-0 top-0 h-1.5 bg-white/5">
-        <div
-          class="h-full bg-gradient-to-r from-cyan-400 to-indigo-400 transition-[width] duration-100"
-          :style="{ width: progressPercent + '%' }"
-        />
+      <!-- ✅ Прогресс-бар внизу вьюпорта (не уедет под шапку) -->
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 z-20"
+        style="padding-bottom: max(env(safe-area-inset-bottom), 0px)"
+      >
+        <div class="mx-auto h-1.5 w-full bg-white/5">
+          <div
+            class="h-full bg-gradient-to-r from-cyan-400 to-indigo-400 transition-[width] duration-100"
+            :style="{ width: progressPercent + '%' }"
+          />
+        </div>
       </div>
 
       <!-- Stepper 1→2 -->
@@ -417,7 +414,7 @@ function scrollToEnd() {
                 type="tel"
                 inputmode="tel"
                 autocomplete="tel"
-                placeholder="+31 6 1234 5678"
+                placeholder="+7 999 999 99 99"
                 class="block w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white outline-none placeholder:text-white/40 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-300/30"
               />
               <p v-if="errors.phone" class="mt-1 text-[11px] text-rose-300/90 sm:text-xs">
@@ -441,7 +438,7 @@ function scrollToEnd() {
       </div>
 
       <!-- Нижняя sticky-пилюля -->
-      <div class="pointer-events-none absolute inset-x-0 bottom-4 flex justify-center sm:bottom-6">
+      <div class="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center sm:bottom-6">
         <div
           class="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-2.5 py-1.5 text-[11px] text-white/80 backdrop-blur sm:px-3 sm:text-xs"
         >
@@ -460,9 +457,6 @@ function scrollToEnd() {
       </div>
     </div>
   </section>
-
-  <!-- Внешняя CTA под дорожкой (опционально; на мобилке тоже ок) -->
- 
 </template>
 
 <style scoped>

@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import SplineScene from '../components/ui/SplineScene.vue';
 import AboutIKB from '../components/AboutIKB.vue';
 import PartnersMarquee from '../components/PartnersMarquee.vue';
-
+import ScrollFramesCanvas from "../components/ScrollFramesCanvas.vue";
 const heroHeading = 'Технологии, которые соединяют идею и железо';
 const isHeadingVisible = ref(false);
 
@@ -24,6 +24,7 @@ onMounted(() => {
 
 <template>
   <section class="Hero">
+ 
   <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
  <div class="absolute inset-0">
       <SplineScene
@@ -76,6 +77,18 @@ onMounted(() => {
       <PartnersMarquee />
     </div>
     <AboutIKB />
+  </section>
+  <section class="frames">
+       <ScrollFramesCanvas
+    basePath="/public/frames"
+    :frameCount="204"   
+    basename="frame_"
+    ext="webp"
+    :durationVH="400" 
+    :startFrame="1"
+    :eagerPreload="24" 
+    :lerp="0.15"      
+  />
   </section>
 </template>
 

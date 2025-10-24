@@ -1,6 +1,7 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import HeaderApp from './components/HeaderApp.vue'
+import FooterApp from './components/FooterApp.vue'
 
 </script>
 
@@ -16,10 +17,8 @@ import HeaderApp from './components/HeaderApp.vue'
 
  
 
-    <footer class="border-t border-white/10 bg-black/60 backdrop-blur">
-      <div class="mx-auto max-w-5xl px-6 py-4 text-sm text-slate-300">
-        Built with Vue 3, Vite, Tailwind CSS, Vue Router, and Pinia.
-      </div>
+    <footer>
+      <FooterApp />
     </footer>
   </div>
 </template>

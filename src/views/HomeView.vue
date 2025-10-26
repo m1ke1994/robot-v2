@@ -1,102 +1,260 @@
 ﻿<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import SplineScene from '../components/ui/SplineScene.vue';
-import ProjectsIKB from '../components/ProjectsIKB.vue';
-import AboutIKB from '../components/AboutIKB.vue';
-import Certificates from '../components/Certificates.vue';
-import PartnersMarquee from '../components/PartnersMarquee.vue';
-import ScrollFramesCanvas from "../components/ScrollFramesCanvas.vue";
-const heroHeading = 'Технологии, которые соединяют идею и железо';
-const isHeadingVisible = ref(false);
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-onMounted(() => {
-  const prefersReduced =
+const SplineScene = defineAsyncComponent(() => import('../components/ui/SplineScene.vue'));
+const ProjectsIKB = defineAsyncComponent(() => import('../components/ProjectsIKB.vue'));
+const AboutIKB = defineAsyncComponent(() => import('../components/AboutIKB.vue'));
+const Certificates = defineAsyncComponent(() => import('../components/Certificates.vue'));
+const PartnersMarquee = defineAsyncComponent(() => import('../components/PartnersMarquee.vue'));
+const ScrollFramesCanvas = defineAsyncComponent(() => import('../components/ScrollFramesCanvas.vue'));
+
+const heroHeading = '��孮�����, ����� ᮥ������ ���� � ������';
+
+const heroSection = ref<HTMLElement | null>(null);
+const aboutSection = ref<HTMLElement | null>(null);
+const projectsSection = ref<HTMLElement | null>(null);
+const certSection = ref<HTMLElement | null>(null);
+const framesSection = ref<HTMLElement | null>(null);
+
+const isHeadingVisible = ref(false);
+const heroActive = ref(false);
+const aboutActive = ref(false);
+const projectsActive = ref(false);
+const certsActive = ref(false);
+const framesActive = ref(false);
+const prefersReducedMotion = ref(false);
+
+type VisibilityState = { state: typeof heroActive; once: boolean };
+
+let observer: IntersectionObserver | null = null;
+let observedTargets: WeakMap<Element, VisibilityState> = new WeakMap();
+
+const observeSection = (el: HTMLElement | null, state: typeof heroActive, once = true) => {
+  if (!el || !observer) return;
+  observedTargets.set(el, { state, once });
+  observer.observe(el);
+};
+
+const setupObserver = () => {
+  if (typeof IntersectionObserver === 'undefined') {
+    heroActive.value = true;
+    aboutActive.value = true;
+    projectsActive.value = true;
+    certsActive.value = true;
+    framesActive.value = true;
+    return;
+  }
+
+  observer?.disconnect();
+  observedTargets = new WeakMap();
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const meta = observedTargets.get(entry.target);
+        if (!meta) continue;
+        if (entry.isIntersecting) {
+          meta.state.value = true;
+          if (meta.once) {
+            observer?.unobserve(entry.target);
+            observedTargets.delete(entry.target);
+          }
+        }
+      }
+    },
+    { threshold: 0.25, rootMargin: '0px 0px -15% 0px' },
+  );
+
+  observeSection(heroSection.value, heroActive);
+  observeSection(aboutSection.value, aboutActive);
+  observeSection(projectsSection.value, projectsActive);
+  observeSection(certSection.value, certsActive);
+  observeSection(framesSection.value, framesActive);
+};
+
+onMounted(async () => {
+  prefersReducedMotion.value =
     window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
 
-  if (prefersReduced) {
+  if (prefersReducedMotion.value) {
+    heroActive.value = true;
+    aboutActive.value = true;
+    projectsActive.value = true;
+    certsActive.value = true;
+    framesActive.value = false;
     isHeadingVisible.value = true;
     return;
   }
 
-  requestAnimationFrame(() => {
-    isHeadingVisible.value = true;
-  });
+  await nextTick();
+  setupObserver();
 });
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  observer = null;
+  observedTargets = new WeakMap();
+});
+
+watch(heroActive, (active) => {
+  if (active || prefersReducedMotion.value) {
+    requestAnimationFrame(() => {
+      isHeadingVisible.value = true;
+    });
+  }
+});
+
+const shouldRenderSpline = computed(() => heroActive.value && !prefersReducedMotion.value);
+const shouldRenderFrames = computed(() => framesActive.value && !prefersReducedMotion.value);
+const marqueeActive = computed(() => heroActive.value);
 </script>
 
 <template>
-  <section class="Hero" id="Hero">
- 
-  <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
- <div class="absolute inset-0">
-      <SplineScene
-        scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-        class="h-full w-full"
-      />
-    </div>
+  <section ref="heroSection" class="Hero page-section" id="Hero">
+    <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
+      <div class="absolute inset-0">
+        <Suspense v-if="shouldRenderSpline">
+          <template #default>
+            <SplineScene
+              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+              class="h-full w-full"
+            />
+          </template>
+          <template #fallback>
+            <div class="hero-gradient"></div>
+          </template>
+        </Suspense>
+        <div v-else class="hero-gradient"></div>
+      </div>
 
-    <div
-      class="pointer-events-none relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-8 px-6 text-center sm:px-8 md:gap-10 lg:max-w-6xl lg:px-16"
-    >
-      <span class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]">
-        Инновационно-конструкторское бюро
-      </span>
-
-      <h1 class="text-4xl font-bold leading-tight md:text-6xl" :aria-label="heroHeading">
-        <span class="ikb-heading-text" :class="{ 'is-visible': isHeadingVisible }">
-          {{ heroHeading }}
+      <div
+        class="pointer-events-none relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-8 px-6 text-center sm:px-8 md:gap-10 lg:max-w-6xl lg:px-16"
+      >
+        <span class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]">
+          ������樮���-���������᪮� ���
         </span>
-      </h1>
 
-      <p class="text-base text-slate-200 md:text-lg">
-        Мы создаём цифровых и физических роботов для команд, которые стремятся одновременно
-        впечатлять аудиторию и избавляться от рутины. В наших проектах дизайн, инженерия и
-        искусственный интеллект работают вместе, чтобы идеи быстрее становились реальными
-        продуктами.
-      </p>
+        <h1 class="text-4xl font-bold leading-tight md:text-6xl" :aria-label="heroHeading">
+          <span class="ikb-heading-text" :class="{ 'is-visible': isHeadingVisible }">
+            {{ heroHeading }}
+          </span>
+        </h1>
 
-      <div class="pointer-events-auto">
-        <a href="#contact" class="ikb-button">
-          Связаться с нами
-        </a>
+        <p class="text-base text-slate-200 md:text-lg">
+          �� ᮧ��� ��஢�� � 䨧��᪨� ஡�⮢ ��� ������, ����� ��६���� �����६����
+          �������� �㤨��� � ����������� �� ��⨭�. � ���� �஥��� ������, �������� �
+          �����⢥��� ��⥫���� ࠡ���� �����, �⮡� ���� ����॥ �⠭������� ॠ��묨
+          �த�⠬�.
+        </p>
+
+        <div class="pointer-events-auto">
+          <a href="#contact" class="ikb-button">
+            ��易���� � ����
+          </a>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
+          <span class="ikb-chip">���ࠨ����� ��⥬�</span>
+          <span class="ikb-chip">R&D � ���⨯�஢����</span>
+          <span class="ikb-chip">������ਠ��� ������</span>
+          <span class="ikb-chip">�����⢥��� ��⥫����</span>
+        </div>
       </div>
 
-      <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
-        <span class="ikb-chip">Встраиваемые системы</span>
-        <span class="ikb-chip">R&D и прототипирование</span>
-        <span class="ikb-chip">Индустриальный дизайн</span>
-        <span class="ikb-chip">Искусственный интеллект</span>
+      <div class="hero-marquee" v-if="marqueeActive">
+        <Suspense>
+          <template #default>
+            <PartnersMarquee />
+          </template>
+          <template #fallback>
+            <div class="marquee-fallback"></div>
+          </template>
+        </Suspense>
+      </div>
+      <div v-else class="hero-marquee">
+        <div class="marquee-fallback"></div>
       </div>
     </div>
-    <div class="hero-marquee">
-      <PartnersMarquee />
+  </section>
+
+  <section ref="aboutSection" class="about page-section" id="about">
+    <template v-if="aboutActive">
+      <div class="partners">
+        <Suspense>
+          <template #default>
+            <PartnersMarquee />
+          </template>
+          <template #fallback>
+            <div class="marquee-fallback"></div>
+          </template>
+        </Suspense>
+      </div>
+      <Suspense>
+        <template #default>
+          <AboutIKB />
+        </template>
+        <template #fallback>
+          <div class="section-skeleton"></div>
+        </template>
+      </Suspense>
+    </template>
+    <template v-else>
+      <div class="partners">
+        <div class="marquee-fallback"></div>
+      </div>
+      <div class="section-skeleton"></div>
+    </template>
+  </section>
+
+  <section ref="certSection" class="cert page-section" id="cert">
+    <Suspense v-if="certsActive">
+      <template #default>
+        <Certificates />
+      </template>
+      <template #fallback>
+        <div class="section-skeleton"></div>
+      </template>
+    </Suspense>
+    <div v-else class="section-skeleton"></div>
+  </section>
+
+  <section ref="projectsSection" class="page-section" id="projects">
+    <Suspense v-if="projectsActive">
+      <template #default>
+        <ProjectsIKB />
+      </template>
+      <template #fallback>
+        <div class="section-skeleton"></div>
+      </template>
+    </Suspense>
+    <div v-else class="section-skeleton"></div>
+  </section>
+
+  <section ref="framesSection" class="frames page-section" id="frames">
+    <template v-if="shouldRenderFrames">
+      <Suspense>
+        <template #default>
+          <ScrollFramesCanvas
+            basePath="/frames"
+            :frameCount="204"
+            basename="frame_"
+            ext="webp"
+            :durationVH="400"
+            :startFrame="1"
+            :eagerPreload="24"
+            :lerp="0.15"
+          />
+        </template>
+        <template #fallback>
+          <div class="frames-skeleton"></div>
+        </template>
+      </Suspense>
+    </template>
+    <div v-else-if="prefersReducedMotion" class="frames-fallback">
+      <p>Анимация недоступна в режиме уменьшенного движения.</p>
+      <p class="frames-fallback-note">Прокрутите страницу, чтобы открыть форму обратной связи.</p>
     </div>
-  </div>
-  
-  </section>
-  <section class="about" id="about">
-    <div class="partners">
-      <PartnersMarquee />
-    </div>
-    <AboutIKB />
-  </section>
-  <section class="cert" id="cert">
-    <Certificates />
-  </section>
-  <section id="projects">
-    <ProjectsIKB />
-  </section>
-  <section class="frames " id="frames">
-       <ScrollFramesCanvas
-    basePath="/frames"
-    :frameCount="204"   
-    basename="frame_"
-    ext="webp"
-    :durationVH="400" 
-    :startFrame="1"
-    :eagerPreload="24" 
-    :lerp="0.15"      
-  />
+    <div v-else class="frames-skeleton"></div>
   </section>
 </template>
 
@@ -110,18 +268,106 @@ onMounted(() => {
 
 .Hero {
   position: relative;
-  background: radial-gradient(140% 140% at 50% -20%, rgba(148, 163, 184, 0.1), transparent 60%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.15) 0%, rgba(2, 6, 23, 0.85) 65%, #020617 100%);
+  padding-block: 0;
 }
 
-.Hero::before {
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(140% 140% at 50% -20%, rgba(148, 163, 184, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.45) 0%, rgba(2, 6, 23, 0.85) 70%, rgba(2, 6, 23, 0.95) 100%);
+  opacity: 0.85;
+}
+
+.marquee-fallback {
+  width: 100%;
+  height: 92px;
+  border-radius: 2.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.2));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.section-skeleton,
+.section-skeleton::after,
+.frames-skeleton::after {
+  pointer-events: none;
+}
+
+.section-skeleton {
+  position: relative;
+  min-height: 320px;
+  border-radius: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.48), rgba(15, 23, 42, 0.22));
+  overflow: hidden;
+}
+
+.section-skeleton::after {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(75% 75% at 50% 80%, rgba(15, 23, 42, 0.5), transparent 80%);
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.25), transparent);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 2.8s infinite;
 }
+
+.frames-skeleton {
+  position: relative;
+  min-height: 420px;
+  border-radius: 2.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.25));
+  overflow: hidden;
+}
+
+.frames-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(94, 234, 212, 0.18), transparent);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 3.2s infinite;
+}
+
+.frames-fallback {
+  border-radius: 2.5rem;
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  background: rgba(15, 23, 42, 0.55);
+  padding: clamp(2rem, 4vw, 3rem);
+  text-align: center;
+  color: rgba(226, 232, 240, 0.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.frames-fallback-note {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: rgba(148, 163, 184, 0.75);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-skeleton::after,
+  .frames-skeleton::after {
+    animation: none;
+  }
+}
+
+
+
 
 .ikb-highlight {
   background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
@@ -270,3 +516,4 @@ onMounted(() => {
   position: relative;
 }
 </style>
+

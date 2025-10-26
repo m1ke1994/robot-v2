@@ -34,7 +34,7 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 <template>
   <section
     id="about-ikb"
-    class="relative overflow-hidden bg-transparent backdrop-blur-sm"
+    class="page-section relative overflow-hidden bg-transparent backdrop-blur-sm"
     :class="
       visible
         ? // на мобильном показываем сразу без класса анимации
@@ -232,16 +232,9 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 /* ====== ФОН — не меняем ====== */
 #about-ikb {
   position: relative;
-  background: radial-gradient(140% 140% at 50% -20%, rgba(7, 12, 28, 0.35), transparent 60%),
-    linear-gradient(180deg, #020617 0%, rgba(2, 6, 23, 0.82) 55%, rgba(15, 23, 42, 0.35) 100%);
 }
 #about-ikb::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(80% 85% at 50% 90%, rgba(15, 23, 42, 0.48), transparent 80%);
+  display: none;
 }
 
 /* ====== Карточки и стек ====== */

@@ -6,8 +6,9 @@ import FooterApp from './components/FooterApp.vue'
 </script>
 
 <template>
-  <div class="relative flex min-h-screen flex-col">
-    <div class="app-background pointer-events-none absolute inset-0 -z-10"></div>
+  <div class="app-shell relative flex min-h-screen flex-col">
+    <div aria-hidden="true" class="app-overlay pointer-events-none fixed inset-0 -z-20"></div>
+    <div aria-hidden="true" class="app-noise pointer-events-none fixed inset-0 -z-10"></div>
 
     <HeaderApp />
 
@@ -22,12 +23,25 @@ import FooterApp from './components/FooterApp.vue'
     </footer>
   </div>
 </template>
-
 <style scoped>
-.app-background {
+.app-shell {
+  position: relative;
+}
+
+.app-overlay {
   background:
-    radial-gradient(140% 120% at 20% 0%, rgba(148, 163, 184, 0.24), transparent 55%),
-    radial-gradient(110% 110% at 80% 20%, rgba(59, 130, 246, 0.18), transparent 60%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.1) 0%, rgba(2, 6, 23, 0.8) 55%, #020617 100%);
+    radial-gradient(120% 120% at 50% 0%, rgba(15, 23, 42, 0.4), transparent 65%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0) 0%, rgba(2, 6, 23, 0.76) 70%, rgba(2, 6, 23, 0.92) 100%);
+  mix-blend-mode: normal;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0.8;
+}
+
+.app-noise {
+  background-image: var(--app-noise);
+  background-size: 280px 280px;
+  mix-blend-mode: soft-light;
+  opacity: 0.35;
 }
 </style>

@@ -71,7 +71,13 @@ const isActive = (to: string) =>
     <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:h-20">
       <!-- Лево: логотип + название (название только на десктопе) -->
       <RouterLink to="/" class="group flex items-center gap-3 min-w-0">
-        <img src="/logo.svg" alt="Логотип" class="h-8 w-8 shrink-0 transition-transform group-hover:scale-105" />
+        <img
+          src="/logo.svg"
+          alt="Логотип"
+          loading="lazy"
+          decoding="async"
+          class="h-8 w-8 shrink-0 transition-transform group-hover:scale-105"
+        />
         <span class="hidden lg:block truncate text-base font-semibold tracking-wide text-white/90">
           ИКБ
         </span>
@@ -137,7 +143,13 @@ const isActive = (to: string) =>
           <!-- Шапка панели -->
           <div class="mb-6 flex items-center justify-between">
             <RouterLink to="/" class="flex items-center gap-3" @click="close">
-              <img src="/logo.svg" alt="Логотип" class="h-8 w-8" />
+              <img
+                src="/logo.svg"
+                alt="Логотип"
+                loading="lazy"
+                decoding="async"
+                class="h-8 w-8"
+              />
               <span class="text-sm font-semibold text-white/90">ИКБ</span>
             </RouterLink>
             <button

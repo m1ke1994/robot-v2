@@ -29,21 +29,57 @@ const projects: Project[] = [
 ]
 
 /** Появление секции */
+const containerEl = ref<HTMLElement | null>(null)
 const visible = ref(false)
-const onScroll = () => {
-  const el = document.getElementById("projects-ikb")
-  if (!el) return
-  const r = el.getBoundingClientRect()
-  if (r.top < window.innerHeight * 0.75) {
-    visible.value = true
-    window.removeEventListener("scroll", onScroll)
-  }
+let observer: IntersectionObserver | null = null
+
+const activate = () => {
+  if (visible.value) return
+  visible.value = true
+  observer?.disconnect()
+  observer = null
 }
+
+const registerObserver = () => {
+  if (visible.value) return
+  if (typeof IntersectionObserver === "undefined") {
+    activate()
+    return
+  }
+  const el = containerEl.value
+  if (!el) return
+
+  observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          activate()
+        }
+      })
+    },
+    { threshold: 0.25, rootMargin: "0px 0px -10% 0px" },
+  )
+  observer.observe(el)
+}
+
 onMounted(() => {
-  window.addEventListener("scroll", onScroll, { passive: true })
-  requestAnimationFrame(onScroll)
+  const prefersReduced =
+    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
+  if (prefersReduced) {
+    visible.value = true
+    return
+  }
+  if (containerEl.value) {
+    registerObserver()
+  } else {
+    requestAnimationFrame(registerObserver)
+  }
 })
-onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 
 /** Фильтр, поиск, сортировка */
 const ALL: Stage[] = ["Концепт", "Макет", "Прототип", "MVP"]
@@ -83,8 +119,9 @@ const filtered = computed(() => {
 
 <template>
   <section
+    ref="containerEl"
     id="projects-ikb"
-    class="relative overflow-hidden py-16 px-4 md:px-8 lg:px-12"
+    class="page-section relative overflow-hidden px-4 md:px-8 lg:px-12"
     :class="visible ? 'animate-in opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
   >
     <!-- те же неоновые подсветки, что в AboutIKB -->
@@ -220,17 +257,6 @@ const filtered = computed(() => {
 /* ==== ФОН — как у AboutIKB, направление сверху вниз ==== */
 #projects-ikb {
   position: relative;
-  background:
-    radial-gradient(140% 140% at 50% 0%, rgba(7, 12, 28, 0.35), transparent 60%),
-    linear-gradient(to bottom, #020617 0%, rgba(2, 6, 23, 0.82) 55%, rgba(15, 23, 42, 0.35) 100%);
-}
-#projects-ikb::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(80% 85% at 50% 85%, rgba(15, 23, 42, 0.48), transparent 80%);
 }
 
 /* Неоновые пятна (как в AboutIKB) */
@@ -238,6 +264,10 @@ const filtered = computed(() => {
 
 /* Плавное появление секции */
 .animate-in { transition: all .9s cubic-bezier(.22,.61,.36,1); }
+@media (prefers-reduced-motion: reduce) {
+  .animate-in { transition: none !important; }
+}
+
 
 /* Сегментированный фильтр */
 .segmented {
@@ -332,3 +362,4 @@ const filtered = computed(() => {
   .seg-btn { padding: .45rem .6rem; }
 }
 </style>
+

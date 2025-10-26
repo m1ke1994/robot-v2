@@ -8,7 +8,7 @@ const partners = [
 </script>
 
 <template>
-  <section class="relative w-full overflow-hidden bg-black py-8">
+  <section class="relative w-full overflow-hidden bg-transparent py-8">
     <!-- затемнение по краям -->
     <div
       class="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#060A19] via-transparent to-[#060A19]"
@@ -50,6 +50,17 @@ const partners = [
 .animate-marquee {
   display: inline-flex;
   animation: marquee 25s linear infinite;
-  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-marquee {
+    will-change: transform;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
 }
 </style>

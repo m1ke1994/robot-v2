@@ -1,258 +1,53 @@
-<!-- src/components/ScrollSprite.vue -->
+<!-- src/components/VideoRevealForm.vue -->
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, computed } from "vue"
+import { ref, onMounted, onBeforeUnmount } from "vue"
 
 type Props = {
-  basePath: string
-  frameCount: number
-  digits?: number
-  basename?: string
-  ext?: "webp" | "jpg" | "png"
-  durationVH?: number
-  startFrame?: number
-  endFrame?: number
-  eagerPreload?: number
-  lerp?: number
-  /** Порог срабатывания формы (0..1), 1 — ровно в конце дорожки */
-  revealThreshold?: number
+  src?: string
+  poster?: string
+  /** Базовая скорость проигрывания */
+  baseRate?: number
+  /** Турбо-скорость при нажатии "Открыть форму" */
+  turboRate?: number
+  /** Базовая длина секции в vh для десктопа */
+  desktopVH?: number
+  /** Длина для планшета */
+  tabletVH?: number
+  /** Длина для мобилки */
+  mobileVH?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  digits: 4,
-  basename: "frame_",
-  ext: "webp",
-  durationVH: 300,
-  startFrame: 1,
-  endFrame: undefined,
-  eagerPreload: 24,
-  lerp: 0.15,
-  revealThreshold: 0.998,
+  src: "/robot.mp4",
+  poster: "",
+  baseRate: 1.25,
+  turboRate: 1.9,
+  desktopVH: 200,
+  tabletVH: 170,
+  mobileVH: 150,
 })
 
-/** emit сабмита формы вверх */
 const emit = defineEmits<{
   (e: "submit", payload: { name: string; email: string; phone: string }): void
 }>()
 
-/** canvas и контекст */
-const canvasEl = ref<HTMLCanvasElement | null>(null)
-let ctx: CanvasRenderingContext2D | null = null
-
-/** DPR (ограничим до 2х для экономии) */
-const dpr = Math.min(window.devicePixelRatio || 1, 2)
-
-/** Хранилище кадров */
-const bitmaps: (ImageBitmap | undefined)[] = []
-
-/** Флаги активности анимации и формы */
-const isActive = ref(false)
-const formVisible = ref(false)
-let formRevealedOnce = false // чтобы не пряталась обратно
-
-/** Кадры */
-const currentFrame = ref(1)
-const targetFrame = ref(1)
-const lastFrame = computed(() => props.endFrame ?? props.frameCount)
-
-/** Прогресс дорожки (0..1) — используем и для формы */
-const scrollProgress = ref(0)
-const progressPercent = computed(() => Math.round(scrollProgress.value * 100))
-const hintReady = computed(() => scrollProgress.value >= props.revealThreshold)
-/** Тизер (призрачная карточка) после 70% */
-const showTeaser = computed(() => scrollProgress.value >= 0.7 && !formVisible.value)
-
-/** URL для кадра */
-function frameUrl(idx: number) {
-  const n = String(idx).padStart(props.digits, "0")
-  return `${props.basePath.replace(/\/$/, "")}/${props.basename}${n}.${props.ext}`
-}
-
-/** Загрузка кадра */
-async function loadFrame(idx: number): Promise<ImageBitmap | undefined> {
-  if (bitmaps[idx]) return bitmaps[idx]
-  try {
-    const res = await fetch(frameUrl(idx), { cache: "force-cache" })
-    if (!res.ok) return
-    const blob = await res.blob()
-    const bmp = await createImageBitmap(blob)
-    bitmaps[idx] = bmp
-    return bmp
-  } catch {
-    return
-  }
-}
-
-/** Жадная предзагрузка старта */
-async function eagerPreload() {
-  const first = Math.max(props.startFrame, 1)
-  const last = Math.min(lastFrame.value, first + (props.eagerPreload || 0) - 1)
-  const tasks: Promise<any>[] = []
-  for (let i = first; i <= last; i++) tasks.push(loadFrame(i))
-  await Promise.all(tasks)
-}
-
-/** Фоновая догрузка порциями */
-function lazyWarmup() {
-  const idle = (window as any).requestIdleCallback as
-    | ((cb: (deadline: any) => void, opts?: any) => number)
-    | undefined
-
-  const CHUNK = 16
-  let cursor = (props.startFrame || 1) + (props.eagerPreload || 0)
-
-  const tick = async () => {
-    const end = Math.min(cursor + CHUNK - 1, lastFrame.value)
-    const tasks: Promise<any>[] = []
-    for (let i = cursor; i <= end; i++) tasks.push(loadFrame(i))
-    await Promise.all(tasks)
-    cursor = end + 1
-    if (cursor <= lastFrame.value) {
-      if (idle) idle(tick)
-      else setTimeout(tick, 50)
-    }
-  }
-
-  if (cursor <= lastFrame.value) {
-    if (idle) idle(tick)
-    else setTimeout(tick, 0)
-  }
-}
-
-/** Ресайз канваса */
-function resizeCanvas() {
-  if (!canvasEl.value) return
-  const rect = canvasEl.value.getBoundingClientRect()
-  const w = Math.max(1, Math.round(rect.width))
-  const h = Math.max(1, Math.round(rect.height))
-  canvasEl.value.width = Math.round(w * dpr)
-  canvasEl.value.height = Math.round(h * dpr)
-  if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-}
-
-/** Рисуем кадр cover */
-function drawFrame(idx: number) {
-  if (!ctx || !canvasEl.value) return
-  const bmp = bitmaps[idx]
-  if (!bmp) return
-
-  const cw = canvasEl.value.width / dpr
-  const ch = canvasEl.value.height / dpr
-  const iw = bmp.width
-  const ih = bmp.height
-
-  const scale = Math.max(cw / iw, ch / ih)
-  const dw = iw * scale
-  const dh = ih * scale
-  const dx = (cw - dw) / 2
-  const dy = (ch - dh) / 2
-
-  ctx.clearRect(0, 0, cw, ch)
-  ctx.drawImage(bmp, dx, dy, dw, dh)
-}
-
-/** RAF-петля */
-let rafId = 0
-function loop() {
-  if (!isActive.value) return
-  const cf = currentFrame.value
-  const tf = targetFrame.value
-  const next = cf + (tf - cf) * (props.lerp ?? 0.15)
-  const snapped = Math.round(next)
-  if (snapped !== cf) {
-    drawFrame(snapped)
-    currentFrame.value = snapped
-  }
-  rafId = requestAnimationFrame(loop)
-}
-
-/** Прокрутка → кадр + прогресс */
 const containerEl = ref<HTMLElement | null>(null)
 const stickyEl = ref<HTMLElement | null>(null)
+const videoEl = ref<HTMLVideoElement | null>(null)
 
-function onScroll() {
-  if (!containerEl.value) return
-  const rect = containerEl.value.getBoundingClientRect()
-  const vh = window.innerHeight
-  const total = rect.height - vh
-  if (total <= 0) return
+const playing = ref(false)
+const playedOnce = ref(false)
+const formVisible = ref(false)
+const showControls = ref(false)
+const turboActive = ref(false)
 
-  const p = Math.min(1, Math.max(0, (vh - rect.top) / total))
-  scrollProgress.value = p
-
-  const start = props.startFrame
-  const end = lastFrame.value
-  const idx = Math.round(start + p * (end - start))
-  targetFrame.value = Math.min(end, Math.max(start, idx))
-
-  // Появление формы при достижении конца
-  if (!formRevealedOnce && p >= props.revealThreshold) {
-    if (navigator.vibrate) navigator.vibrate(10)
-    formVisible.value = true
-    formRevealedOnce = true
-    requestAnimationFrame(() => {
-      const input = document.querySelector('input[autocomplete="name"]') as HTMLInputElement | null
-      input?.focus()
-    })
-  }
+/** динамическая высота секции по брейкпоинтам */
+const sectionVH = ref<number>(props.desktopVH)
+function recalcVH() {
+  const w = typeof window !== "undefined" ? window.innerWidth : 1280
+  sectionVH.value = w < 640 ? props.mobileVH : w < 1024 ? props.tabletVH : props.desktopVH
 }
 
-/** Активируем/останавливаем RAF по видимости */
-let io: IntersectionObserver | null = null
-
-onMounted(async () => {
-  currentFrame.value = props.startFrame
-  targetFrame.value = props.startFrame
-
-  ctx = canvasEl.value?.getContext("2d") ?? null
-  resizeCanvas()
-  window.addEventListener("resize", resizeCanvas, { passive: true })
-  window.addEventListener("scroll", onScroll, { passive: true })
-
-  await eagerPreload()
-  drawFrame(props.startFrame)
-  lazyWarmup()
-
-  if (stickyEl.value) {
-    io = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.some((e) => e.isIntersecting)
-        isActive.value = visible
-        if (visible && !rafId) {
-          rafId = requestAnimationFrame(loop)
-        } else if (!visible && rafId) {
-          cancelAnimationFrame(rafId)
-          rafId = 0
-        }
-      },
-      { root: null, threshold: 0.01 }
-    )
-    io.observe(stickyEl.value)
-  }
-
-  // prefers-reduced-motion: сразу показываем форму
-  const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  if (prefersReduced) {
-    formVisible.value = true
-    formRevealedOnce = true
-  }
-
-  window.addEventListener("keydown", onKeydown, { passive: true })
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", resizeCanvas)
-  window.removeEventListener("scroll", onScroll)
-  window.removeEventListener("keydown", onKeydown)
-  if (io && stickyEl.value) io.unobserve(stickyEl.value)
-  if (rafId) cancelAnimationFrame(rafId)
-  bitmaps.forEach((b: any) => b && b.close && b.close())
-})
-
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === "Escape") formVisible.value = false
-}
-
-/** Форма: локальное состояние + эмит */
 const name = ref("")
 const email = ref("")
 const phone = ref("")
@@ -261,17 +56,11 @@ const errors = ref<{ name?: string; email?: string; phone?: string }>({})
 
 function validate() {
   errors.value = {}
-  if (!name.value.trim()) {
-    errors.value.name = "Введите имя"
-  }
+  if (!name.value.trim()) errors.value.name = "Введите имя"
   const em = email.value.trim()
   const ph = phone.value.trim()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-    errors.value.email = "Укажите корректный e-mail"
-  }
-  if (!/^[\d+()\-\s]{6,}$/.test(ph)) {
-    errors.value.phone = "Укажите номер телефона"
-  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) errors.value.email = "Укажите корректный e-mail"
+  if (!/^[\d+()\-\s]{6,}$/.test(ph)) errors.value.phone = "Укажите номер телефона"
   return Object.keys(errors.value).length === 0
 }
 
@@ -279,107 +68,293 @@ async function onSubmit(e: Event) {
   e.preventDefault()
   if (!validate()) return
   submitting.value = true
-
   try {
-    const payload = {
+    emit("submit", {
       name: name.value.trim(),
       email: email.value.trim(),
       phone: phone.value.replace(/\s+/g, "").trim(),
-    }
-    emit("submit", payload)
+    })
     formVisible.value = false
-  } catch (err) {
-    console.error(err)
   } finally {
     submitting.value = false
   }
 }
 
-/** Якорь к концу дорожки */
-function scrollToEnd() {
-  if (!containerEl.value) return
-  const top = containerEl.value.getBoundingClientRect().top + window.scrollY
-  const target = top + containerEl.value.offsetHeight - window.innerHeight + 1
-  window.scrollTo({ top: target, behavior: "smooth" })
+/** ——— управление формой ——— */
+function openFormTurbo() {
+  formVisible.value = true
+  turboActive.value = true
+  setPlaybackRate(props.turboRate)
+  tryPlay()
+}
+function openFormSoft() {
+  formVisible.value = true
+}
+function closeForm() {
+  formVisible.value = false
+  turboActive.value = false
+  if (!frozen) setPlaybackRate(props.baseRate)
+}
+
+/** ——— заморозка на последнем кадре ——— */
+let freezeAt = 0
+let frozen = false
+
+function onLoadedMetadata() {
+  const v = videoEl.value
+  if (!v) return
+  freezeAt = Math.max(0, (v.duration ?? 0) - 0.04)
+  frozen = false
+  setPlaybackRate(props.baseRate)
+}
+
+function onTimeUpdate() {
+  const v = videoEl.value
+  if (!v) return
+  if (!frozen && freezeAt > 0 && v.currentTime >= freezeAt) {
+    v.pause()
+    try { v.currentTime = freezeAt } catch {}
+    frozen = true
+    playedOnce.value = true
+    formVisible.value = true
+    playing.value = false
+  }
+}
+
+function onError() {
+  formVisible.value = true
+}
+
+function setPlaybackRate(rate: number) {
+  const v = videoEl.value
+  if (!v) return
+  v.playbackRate = Math.max(0.1, rate || 1.0)
+}
+
+async function tryPlay() {
+  const v = videoEl.value
+  if (!v) return
+  // если уже заморожено — не стартуем
+  if (playedOnce.value && frozen) return
+  try {
+    v.muted = true
+    showControls.value = false
+    playing.value = true
+    await v.play()
+  } catch {
+    showControls.value = true
+    playing.value = false
+  }
+}
+
+/** Полный сброс для повторного проигрывания при возвращении к секции */
+function resetForReplay() {
+  const v = videoEl.value
+  formVisible.value = false
+  turboActive.value = false
+  playedOnce.value = false
+  frozen = false
+  freezeAt = 0
+  if (v) {
+    try { v.pause() } catch {}
+    try { v.currentTime = 0 } catch {}
+    setPlaybackRate(props.baseRate)
+  }
+  playing.value = false
+  // стартуем заново
+  tryPlay()
+}
+
+/** наблюдаем вход/выход секции и перезапускаем видео при повторном входе */
+let io: IntersectionObserver | null = null
+let inView = false
+let wasOut = true // чтобы отличать "возвращение"
+
+function handleIO(entries: IntersectionObserverEntry[]) {
+  const e = entries[0]
+  const nowInView = !!e?.isIntersecting && e.intersectionRatio >= 0.6
+  if (nowInView && (!inView || wasOut)) {
+    // вернулись к секции — перезапуск
+    resetForReplay()
+    wasOut = false
+  } else if (!nowInView && inView) {
+    // ушли от секции — отметим, что вышли
+    wasOut = true
+  }
+  inView = nowInView
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape" && formVisible.value) closeForm()
+}
+
+onMounted(() => {
+  recalcVH()
+  window.addEventListener("resize", recalcVH, { passive: true })
+
+  const prefersReduced =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
+  if (prefersReduced) {
+    formVisible.value = true
+  } else {
+    if (stickyEl.value) {
+      io = new IntersectionObserver(handleIO, {
+        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1],
+      })
+      io.observe(stickyEl.value)
+    }
+    // первый старт, если компонент уже в зоне видимости
+    requestAnimationFrame(() => tryPlay())
+  }
+
+  window.addEventListener("keydown", onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", recalcVH)
+  if (io && stickyEl.value) io.unobserve(stickyEl.value)
+  window.removeEventListener("keydown", onKeydown)
+})
+
+/** ручной запуск при блокировке автоплея */
+async function manualPlay() {
+  const v = videoEl.value
+  if (!v) return
+  try {
+    showControls.value = false
+    playing.value = true
+    await v.play()
+  } catch {
+    formVisible.value = true
+  }
+}
+
+/** мгновенно к финалу */
+function skipVideo() {
+  const v = videoEl.value
+  if (v) {
+    if (freezeAt <= 0 && v.duration) freezeAt = Math.max(0, v.duration - 0.04)
+    try { v.currentTime = freezeAt || v.duration - 0.04 } catch {}
+    v.pause()
+  }
+  frozen = true
+  playedOnce.value = true
+  formVisible.value = true
+  playing.value = false
 }
 </script>
 
 <template>
-  <!-- Прозрачный контейнер «дорожки» -->
   <section
     ref="containerEl"
     class="relative w-full bg-transparent"
-    :style="{ height: `${props.durationVH}vh` }"
+    :style="{ height: `${sectionVH}vh` }"
   >
-    <!-- Приклеенный холст без фона -->
-    <div ref="stickyEl" class="sticky top-0 h-[100vh] w-full" style="contain: strict">
-      <canvas
-        ref="canvasEl"
-        class="block h-full w-full touch-pan-y"
-        aria-label="Scroll-driven animation"
-      />
+    <div
+      ref="stickyEl"
+      class="sticky top-0 h-[100vh] w-full overflow-hidden"
+      style="contain: strict"
+    >
+      <!-- Фоновое видео (остаётся на последнем кадре; форма поверх) -->
+      <div class="absolute inset-0">
+        <video
+          ref="videoEl"
+          :src="src"
+          :poster="poster || undefined"
+          preload="metadata"
+          playsinline
+          webkit-playsinline
+          muted
+          :controls="showControls"
+          disablepictureinpicture
+          controlslist="nodownload noplaybackrate noremoteplayback"
+          class="h-full w-full object-cover"
+          @loadedmetadata="onLoadedMetadata"
+          @timeupdate="onTimeUpdate"
+          @error="onError"
+        />
 
-      <!-- ✅ Прогресс-бар внизу вьюпорта (не уедет под шапку) -->
-      <div
-        class="pointer-events-none absolute inset-x-0 bottom-0 z-20"
-        style="padding-bottom: max(env(safe-area-inset-bottom), 0px)"
-      >
-        <div class="mx-auto h-1.5 w-full bg-white/5">
+        <!-- Верхняя панель статуса/кнопок (лёгкая, не перегружает) -->
+        <div class="pointer-events-none absolute inset-x-0 top-3 sm:top-4 z-10 flex justify-center">
           <div
-            class="h-full bg-gradient-to-r from-cyan-400 to-indigo-400 transition-[width] duration-100"
-            :style="{ width: progressPercent + '%' }"
-          />
-        </div>
-      </div>
-
-      <!-- Stepper 1→2 -->
-      <div class="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 sm:top-4">
-        <div
-          class="rounded-full border border-white/15 bg-black/30 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur sm:px-3 sm:text-xs"
-        >
-          <span :class="scrollProgress < 1 ? 'text-white' : 'text-white/60'">1. Просмотр</span>
-          <span class="px-1.5 text-white/40 sm:px-2">→</span>
-          <span :class="hintReady ? 'text-cyan-200' : 'text-white/60'">2. Контакт</span>
-        </div>
-      </div>
-
-      <!-- Live-озвучка для скринридеров -->
-      <div class="sr-only" aria-live="polite">
-        {{ hintReady ? 'Форма доступна' : 'Прокрутите вниз, чтобы открыть форму' }}
-      </div>
-
-      <!-- Оверлей центра: форма + тизер -->
-      <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <!-- Тизер формы (70%+) -->
-        <div
-          v-if="showTeaser"
-          class="pointer-events-none absolute inset-0 flex items-center justify-center"
-        >
-          <div
-            class="mx-3 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:mx-4 sm:p-6"
+            class="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[11px] text-white/80 backdrop-blur sm:text-xs"
           >
-            <div class="mb-2 text-center text-xs text-white/60 sm:text-sm">
-              Формa скоро появится
-            </div>
-            <div class="h-8 w-full rounded-md bg-white/[0.06]"></div>
-            <div class="mt-2 h-8 w-2/3 rounded-md bg-white/[0.04]"></div>
-            <div class="mt-4 h-9 w-full rounded-lg bg-white/[0.08]"></div>
+            <span v-if="!formVisible && !playing && !showControls">Готовим видео…</span>
+            <span v-else-if="playing && !formVisible">
+              Воспроизведение ×{{ (videoEl?.playbackRate || 1).toFixed(2) }}
+            </span>
+            <span v-else-if="formVisible && !frozen">Форма открыта • видео идёт</span>
+            <span v-else-if="formVisible && frozen">Видео завершено</span>
+            <span v-else>Автовоспроизведение недоступно</span>
+
+            <span class="hidden sm:inline text-white/40">•</span>
+
+            <button
+              class="hidden sm:inline rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
+              v-if="showControls && !playing && !formVisible"
+              @click.prevent="manualPlay"
+            >
+              Запустить
+            </button>
+
+            <button
+              class="hidden sm:inline rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
+              v-if="!formVisible && !frozen"
+              @click.prevent="openFormSoft"
+            >
+              Открыть форму
+            </button>
+
+            <button
+              class="hidden sm:inline rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
+              v-if="!formVisible"
+              @click.prevent="skipVideo"
+            >
+              Пропустить
+            </button>
           </div>
         </div>
 
-        <!-- Форма -->
-        <transition name="fade-zoom" appear>
-          <form
-            v-if="formVisible"
-            @submit="onSubmit"
-            class="pointer-events-auto mx-3 w-full max-w-md rounded-2xl border border-white/15 bg-black/35 p-5 shadow-2xl backdrop-blur-md sm:mx-4 sm:p-6"
+        <!-- Плавающая кнопка "Открыть форму" (крупная для мобилок) -->
+        <div class="absolute bottom-4 right-3 z-10 sm:bottom-5 sm:right-4 md:bottom-6 md:right-6">
+          <button
+            class="rounded-full bg-black/55 px-4 py-2 text-xs font-semibold text-white backdrop-blur-lg ring-1 ring-white/15 shadow-lg transition hover:bg-black/65 active:scale-[0.99] sm:text-sm"
+            @click="openFormTurbo"
           >
-            <h3 class="mb-3 text-center text-lg font-semibold tracking-tight text-white sm:mb-4 sm:text-xl">
+            Открыть форму (×{{ turboRate.toFixed(1) }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Форма поверх последнего кадра -->
+      <transition name="zoom-fade" appear>
+        <div
+          v-if="formVisible"
+          class="absolute inset-0 flex items-center justify-center px-3 sm:px-4"
+        >
+          <form
+            @submit="onSubmit"
+            class="relative w-full max-w-md rounded-2xl border border-white/15 bg-black/35 p-5 shadow-2xl backdrop-blur-md sm:p-6"
+          >
+            <!-- Закрыть -->
+            <button
+              type="button"
+              class="absolute right-2 top-2 rounded-md p-2 text-white/80 hover:bg-white/10 active:scale-[0.98]"
+              aria-label="Закрыть форму"
+              @click="closeForm"
+            >
+              ✕
+            </button>
+
+            <h3 class="mb-3 pr-8 text-center text-lg font-semibold tracking-tight text-white sm:mb-4 sm:text-xl">
               Связаться с нами
             </h3>
 
             <div class="mb-3">
-              <label class="mb-1 block text-xs text-white/80 sm:text-sm">Имя</label>
+              <label class="mb-1 block text-xs text-white/80 sm:text-sm">Телефон</label>
               <input
                 v-model="name"
                 type="text"
@@ -427,63 +402,32 @@ function scrollToEnd() {
               :disabled="submitting"
               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400/90 to-indigo-400/90 px-4 py-2 text-sm font-semibold text-black shadow-lg shadow-cyan-500/10 ring-1 ring-white/10 transition hover:from-cyan-300 hover:to-indigo-300 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ submitting ? "Отправка..." : "Отправить" }}
+              {{ submitting ? "Отправляем..." : "Отправить" }}
             </button>
 
             <p class="mt-3 text-center text-[11px] text-white/60 sm:text-xs">
-              Нажмите <kbd class="rounded bg-white/10 px-1">Esc</kbd>, чтобы закрыть
+              Видео остаётся на последнем кадре, чтобы сохранить композицию и не отвлекать внимание.
             </p>
           </form>
-        </transition>
-      </div>
-
-      <!-- Нижняя sticky-пилюля -->
-      <div class="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center sm:bottom-6">
-        <div
-          class="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-2.5 py-1.5 text-[11px] text-white/80 backdrop-blur sm:px-3 sm:text-xs"
-        >
-          <span v-if="!hintReady">Прокрутите, чтобы открыть форму</span>
-          <span v-else class="text-cyan-200">Форма доступна</span>
-          <span class="text-white/40">•</span>
-          <span>{{ progressPercent }}%</span>
-
-          <button
-            class="rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
-            @click.prevent="scrollToEnd"
-          >
-            {{ hintReady ? 'Открыть' : 'К форме' }}
-          </button>
         </div>
-      </div>
+      </transition>
     </div>
   </section>
 </template>
 
 <style scoped>
-:host,
-section,
-canvas {
-  touch-action: pan-y;
-  -webkit-user-select: none;
-  user-select: none;
+.zoom-fade-enter-active, .zoom-fade-leave-active {
+  transition: opacity 320ms ease, transform 320ms ease;
 }
-
-/* Анимация появления формы */
-.fade-zoom-enter-active,
-.fade-zoom-leave-active {
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-.fade-zoom-enter-from,
-.fade-zoom-leave-to {
+.zoom-fade-enter-from, .zoom-fade-leave-to {
   opacity: 0;
   transform: scale(0.98) translateY(6px);
 }
 
-/* Мобильная адаптация: защищаем от горизонтального скролла и кликов мимо */
-section {
+section, .sticky {
   overflow: clip;
 }
-button {
-  -webkit-tap-highlight-color: transparent;
-}
+
+/* Тап-хайлайт убираем — приятнее на мобилке */
+button { -webkit-tap-highlight-color: transparent; }
 </style>

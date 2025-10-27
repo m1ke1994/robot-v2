@@ -1,22 +1,21 @@
 <script setup lang="ts">
 const partners = [
-  "Компания «Ф-Байт»",
-  "ООО «Электронные технологии»",
-  "ОАО «Автодизель (ЯМЗ)»",
-  "АО НПЦ «Элвис»",
-]
+  'Корпорация «Уралмаш Инжиниринг»',
+  'НПЦ «СтанкоАльянс»',
+  'АО «Энергомаш»',
+  'Digital Factory Lab',
+  'Индустриальный парк «Технополис»',
+];
 </script>
 
 <template>
   <section class="relative w-full overflow-hidden bg-transparent py-8">
-    <!-- затемнение по краям -->
     <div
       class="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-[#060A19] via-transparent to-[#060A19]"
+      aria-hidden="true"
     ></div>
 
-    <!-- обёртка -->
     <div class="relative flex w-max animate-marquee whitespace-nowrap">
-      <!-- первая копия -->
       <span
         v-for="(name, i) in partners"
         :key="`first-${i}`"
@@ -25,7 +24,6 @@ const partners = [
         {{ name }}
       </span>
 
-      <!-- дублированная копия -->
       <span
         v-for="(name, i) in partners"
         :key="`second-${i}`"

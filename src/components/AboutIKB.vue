@@ -1,227 +1,222 @@
-<!-- src/components/AboutIKB.vue -->
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from "vue"
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-const visible = ref(false)
-const isMobile = ref(false)
+const visible = ref(false);
+const container = ref<HTMLElement | null>(null);
 
-const onScroll = () => {
-  const el = document.getElementById("about-ikb")
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  if (rect.top < window.innerHeight * 0.7) {
-    visible.value = true
-    window.removeEventListener("scroll", onScroll)
+let observer: IntersectionObserver | null = null;
+
+const registerObserver = () => {
+  if (!container.value || visible.value) return;
+
+  observer?.disconnect();
+
+  if (typeof IntersectionObserver === 'undefined') {
+    visible.value = true;
+    return;
   }
-}
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          visible.value = true;
+          observer?.disconnect();
+          observer = null;
+          break;
+        }
+      }
+    },
+    { threshold: 0.25 },
+  );
+
+  observer.observe(container.value);
+};
 
 onMounted(() => {
-  // считаем мобильным ≤ 640px (sm в Tailwind)
-  isMobile.value = window.innerWidth <= 640
-
-  if (isMobile.value) {
-    // на мобильном — без анимации и без ожидания скролла
-    visible.value = true
-  } else {
-    window.addEventListener("scroll", onScroll, { passive: true })
-    requestAnimationFrame(onScroll)
+  const isMobile = window.innerWidth <= 640;
+  if (isMobile) {
+    visible.value = true;
+    return;
   }
-})
 
-onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
+  registerObserver();
+});
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  observer = null;
+});
 </script>
 
 <template>
   <section
     id="about-ikb"
-    class="page-section relative overflow-hidden bg-transparent backdrop-blur-sm"
-    :class="
-      visible
-        ? // на мобильном показываем сразу без класса анимации
-          (isMobile ? 'opacity-100 translate-x-0' : 'animate-in opacity-100 translate-x-0')
-        : 'opacity-0 translate-x-6'
-    "
+    ref="container"
+    class="page-section relative overflow-hidden bg-transparent"
+    :class="visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
   >
-    <!-- лёгкие неоновые подсветки -->
     <div
       class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
       style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
+      aria-hidden="true"
     ></div>
-
     <div
       class="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full blur-3xl"
       style="background: radial-gradient(60% 60% at 50% 50%, rgba(99,102,241,0.15), transparent)"
+      aria-hidden="true"
     ></div>
 
-    <div class="relative mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-12 md:gap-12 md:py-24">
-      <!-- Левая часть: смысл и оффер -->
-      <div class="md:col-span-7">
-        
-
-        <h2 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-white md:text-3xl">
-          Автоматизация бизнеса и производства,
-          <span class="bg-gradient-to-r from-cyan-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
-            которая повышает эффективность
-          </span>
+    <div class="relative mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 md:grid-cols-12 md:gap-12">
+      <div class="md:col-span-7 space-y-6">
+        <span class="overline">Инженерное бюро полного цикла</span>
+        <h2 class="headline">
+          Проектируем роботизированные комплексы и цифровые двойники для промышленных лидеров
         </h2>
-
-        <p class="mt-5 text-base leading-7 text-neutral-300 md:text-lg md:leading-8">
-          Проектируем и внедряем цифровые решения под ключ: от датчиков и роботов до MES/ERP-интеграций,
-          SCADA и промышленного IoT. Сокращаем простой, исключаем ручные ошибки и делаем процесс управляемым
-          данными — с измеримой экономией и безопасностью по умолчанию.
+        <p class="lead">
+          Команда ИКБ Robotics объединяет инженеров‑конструкторов, специалистов по мехатронике и
+          разработчиков ПО. Мы проектируем и внедряем робототехнические решения, которые сокращают
+          простои, повышают производительность и делают производство предсказуемым.
         </p>
 
-        <!-- Три ключевых обещания -->
-        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="stats">
           <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Производство быстрее</div>
-            <p class="mt-1 text-sm text-neutral-300">Снижение цикла и простоев, рост OEE.</p>
-          </div>
-          <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Гарантии безопасности</div>
-            <p class="mt-1 text-sm text-neutral-300">NDA, аудит архитектуры, контроль поставок.</p>
+            <div class="metric">15+</div>
+            <p class="metric-caption">лет в разработке спецоборудования и автоматизации</p>
           </div>
           <div class="glass-card">
-            <div class="text-sm font-semibold text-white">Измеримый эффект</div>
-            <p class="mt-1 text-sm text-neutral-300">KPI: OEE, MTBF/MTTR, энергопрофиль, брак.</p>
+            <div class="metric">50</div>
+            <p class="metric-caption">запущенных роботизированных ячеек и производственных участков</p>
           </div>
-        </div>
-
-        <!-- Услуги/направления -->
-        <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="feature">
-            <h3>PLC/SCADA &amp; HMI</h3>
-            <p>Проектирование, визуализация, тревоги, рецепты, отчётность. Поддержка модулей безопасности.</p>
+          <div class="glass-card">
+            <div class="metric">24/7</div>
+            <p class="metric-caption">цифровой мониторинг и поддержка критичных линий</p>
           </div>
-          <div class="feature">
-            <h3>MES/ERP-интеграции</h3>
-            <p>Сопровождение потока данных: цех → MES → ERP. API, шины данных, шифрование.</p>
-          </div>
-          <div class="feature">
-            <h3>Роботизация &amp; Визия</h3>
-            <p>Манипуляторы, конвейеры, машинное зрение, контроль качества в реальном времени.</p>
-          </div>
-          <div class="feature">
-            <h3>Промышленный IoT</h3>
-            <p>Датчики, телеметрия, предиктивная аналитика отказов, дашборды KPI.</p>
-          </div>
-        </div>
-
-        <!-- Статы/маркеры доверия -->
-        <div class="mt-10 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-10">
-          <div class="stat">
-            <span class="stat-num">2008→</span>
-            <span class="stat-label">опыт ядра команды</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">≤ 4 нед.</span>
-            <span class="stat-label">R&amp;D-итерации</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">24/7</span>
-            <span class="stat-label">мониторинг и алерты</span>
-          </div>
-          <a
-            href="#contact"
-            class="group inline-flex items-center gap-2 rounded-full border border-cyan-400/60 px-5 py-2 text-sm font-medium text-cyan-200 transition-all hover:border-cyan-300 hover:bg-cyan-400/10 hover:shadow-[0_0_24px_rgba(34,211,238,0.25)]"
-          >
-            Обсудить задачу
-            <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
         </div>
       </div>
 
-      <!-- Правая часть: мини-кейсы + стек -->
-      <div class="md:col-span-5">
+      <div class="md:col-span-5 space-y-5">
         <div class="visual">
           <div class="visual-header">
-            <span class="dot" />
-            <span class="dot" />
-            <span class="dot" />
-            <span class="title">IKB • Automation</span>
+            <span class="dot"></span>
+            <span class="title">Фокус &amp; компетенции</span>
           </div>
-
-          <div class="visual-body">
-            <!-- Короткие кейсы -->
-            <div class="grid grid-cols-1 gap-3">
-              <div class="case-card">
-                <div class="case-head">
-                  <span class="badge">Производство пищевой</span>
-                  <span class="delta good">-18% простоев</span>
-                </div>
-                <p class="case-text">
-                  SCADA + датчики вибрации и температуры. Предиктивные алерты → сокращение аварийных остановок.
-                </p>
-              </div>
-              <div class="case-card">
-                <div class="case-head">
-                  <span class="badge">Сборка электроники</span>
-                  <span class="delta good">-32% брака</span>
-                </div>
-                <p class="case-text">
-                  Камеры машинного зрения, контроль пайки и маркировки. Автосортировка на конвейере.
-                </p>
-              </div>
-              <div class="case-card">
-                <div class="case-head">
-                  <span class="badge">Логистика</span>
-                  <span class="delta good">+21% OEE</span>
-                </div>
-                <p class="case-text">
-                  Интеграция WMS/ERP + терминалы. Балансировка линий, тайм-слоты отгрузок, live-дашборды.
-                </p>
-              </div>
-            </div>
-
-            <div class="divider" />
-
-            <!-- Стек/компетенции -->
-            <ul class="grid grid-cols-2 gap-3 text-sm">
-              <li class="chip">PLC / SCADA</li>
-              <li class="chip">HMI &amp; Alarms</li>
-              <li class="chip">MES / ERP</li>
-              <li class="chip">IIoT / MQTT</li>
-              <li class="chip">Vision / AI</li>
-              <li class="chip">Cyber-Safe</li>
+          <div class="visual-body space-y-4">
+            <ul class="chip-list">
+              <li class="chip">Робототехника и мехатроника</li>
+              <li class="chip">Промышленное зрение и AI-контроль</li>
+              <li class="chip">SCADA · MES · цифровые двойники</li>
             </ul>
-
-            <div class="divider" />
-
-            <!-- 4 шага внедрения -->
-            <ol class="steps">
-              <li>
-                <span class="num">1</span>
-                <div>
-                  <div class="step-title">Диагностика</div>
-                  <div class="step-text">Измеряем: узкие места, данные, риски безопасности.</div>
-                </div>
-              </li>
-              <li>
-                <span class="num">2</span>
-                <div>
-                  <div class="step-title">Архитектура</div>
-                  <div class="step-text">Схема потоков, точки интеграции, KPI и SLA.</div>
-                </div>
-              </li>
-              <li>
-                <span class="num">3</span>
-                <div>
-                  <div class="step-title">Пилот</div>
-                  <div class="step-text">Минимальный охват, обучение, контроль метрик.</div>
-                </div>
-              </li>
-              <li>
-                <span class="num">4</span>
-                <div>
-                  <div class="step-title">Масштабирование</div>
-                  <div class="step-text">Роллаут, документация, 24/7 мониторинг.</div>
-                </div>
-              </li>
-            </ol>
-
+            <div class="divider"></div>
+            <p class="text-sm text-slate-200/80">
+              Мы работаем с производствами, где каждая минута простоя стоит дорого. Поэтому до
+              внедрения решение проходит моделирование на цифровом двойнике, пилот на действующей
+              линии и только затем масштабирование.
+            </p>
           </div>
+        </div>
+
+        <div class="case-card">
+          <div class="case-head">
+            <span class="badge">Кейс</span>
+            <span class="delta good">−38% времени цикла</span>
+          </div>
+          <p class="case-text">
+            Роботизированная линия механической обработки для машиностроительного холдинга:
+            интеграция робот-манипуляторов, цифровой двойник и подключение к ERP.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative mx-auto mt-12 max-w-6xl grid grid-cols-1 gap-10 px-6 md:grid-cols-12 md:gap-12">
+      <div class="md:col-span-7 space-y-8">
+        <div class="space-y-3">
+          <h3 class="section-title">Как мы работаем</h3>
+          <p class="text-sm text-slate-300/85">
+            Используем инженерные методики, подтверждённые сертификациями международных вендоров.
+          </p>
+        </div>
+
+        <ul class="features">
+          <li class="feature">
+            <span class="feature-icon">01</span>
+            <div>
+              <h4>Диагностика и обоснование</h4>
+              <p>Анализируем процессы, считаем экономический эффект, формируем дорожную карту проекта.</p>
+            </div>
+          </li>
+          <li class="feature">
+            <span class="feature-icon">02</span>
+            <div>
+              <h4>Проектирование и цифровой двойник</h4>
+              <p>Создаём 3D-модели, симуляции, тестируем сценарии работы оборудования и выявляем узкие места.</p>
+            </div>
+          </li>
+          <li class="feature">
+            <span class="feature-icon">03</span>
+            <div>
+              <h4>Внедрение и сопровождение</h4>
+              <p>Проводим монтаж, обучение персонала и подключаем систему мониторинга для непрерывной поддержки.</p>
+            </div>
+          </li>
+        </ul>
+
+        <div>
+          <h3 class="section-title">Процесс в деталях</h3>
+          <ol class="steps">
+            <li>
+              <span class="num">1</span>
+              <div>
+                <div class="step-title">Предпроектное обследование</div>
+                <p class="step-text">Сбор исходных данных, оценка оборудования, определение KPI.</p>
+              </div>
+            </li>
+            <li>
+              <span class="num">2</span>
+              <div>
+                <div class="step-title">Инженерный проект</div>
+                <p class="step-text">Разработка КД, электрических схем, ПО, спецификаций и графиков запуска.</p>
+              </div>
+            </li>
+            <li>
+              <span class="num">3</span>
+              <div>
+                <div class="step-title">Пилот и запуск</div>
+                <p class="step-text">Монтаж, SAT/FAT-тесты, обучение сотрудников и метрологическая калибровка.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="md:col-span-5 space-y-6">
+        <div class="case-card">
+          <div class="case-head">
+            <span class="badge">Цифровизация</span>
+            <span class="delta">OEE +21%</span>
+          </div>
+          <p class="case-text">
+            MES-платформа и система диспетчеризации для завода металлоконструкций. Реальное время,
+            аналитика по сменам, управление заданиями с планшетов операторов.
+          </p>
+        </div>
+
+        <div class="case-card">
+          <div class="case-head">
+            <span class="badge">R&amp;D</span>
+            <span class="delta">6 месяцев</span>
+          </div>
+          <p class="case-text">
+            Разработали модуль электроснабжения для роботизированной линии покраски: собственная
+            мехатроника и софт на базе Codesys, полный цикл испытаний.
+          </p>
+        </div>
+
+        <div class="callout">
+          <h4>Хотите обсудить задачу?</h4>
+          <p>Подготовим предварительное техническое решение и оценим эффект до начала проекта.</p>
+          <a href="#contact" class="callout-link">Запросить консультацию</a>
         </div>
       </div>
     </div>
@@ -229,178 +224,300 @@ onBeforeUnmount(() => window.removeEventListener("scroll", onScroll))
 </template>
 
 <style scoped>
-/* ====== ФОН — не меняем ====== */
 #about-ikb {
-  position: relative;
-}
-#about-ikb::before {
-  display: none;
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-/* ====== Карточки и стек ====== */
+.overline {
+  display: inline-block;
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.65);
+}
+
+.headline {
+  font-size: clamp(2.2rem, 3.2vw, 2.8rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: #f8fafc;
+}
+
+.lead {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .glass-card {
   position: relative;
-  overflow: hidden;
-  border-radius: 1.75rem;
-  border: none;
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.36));
-  backdrop-filter: blur(32px) saturate(130%);
-  -webkit-backdrop-filter: blur(32px) saturate(130%);
-  box-shadow:
-    inset 0 0 0 1px rgba(148, 163, 184, 0.04),
-    0 45px 120px -70px rgba(3, 7, 18, 0.95);
-  isolation: isolate;
-}
-
-.feature {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.75rem;
-  border: none;
-  padding: 1.5rem;
-  background: linear-gradient(150deg, rgba(6, 13, 28, 0.7), rgba(15, 23, 42, 0.4));
-  backdrop-filter: blur(32px) saturate(130%);
-  -webkit-backdrop-filter: blur(32px) saturate(130%);
+  padding: 1.1rem 1.3rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.32));
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
   box-shadow:
     inset 0 0 0 1px rgba(148, 163, 184, 0.05),
-    0 55px 140px -80px rgba(3, 7, 18, 0.9);
-  isolation: isolate;
+    0 60px 150px -90px rgba(3, 7, 18, 0.9);
 }
-.feature h3 { font-weight: 600; color: #fff; margin-bottom: .25rem; font-size: 0.95rem; }
-.feature p  { color: rgba(226,232,240,.9); font-size: .9rem; line-height: 1.35rem; }
 
-.stat { display: flex; flex-direction: column; }
-.stat-num { font-size: 1.25rem; font-weight: 600; line-height: 1; color: #fff; }
-.stat-label { margin-top: .25rem; font-size: .75rem; color: #94a3b8; }
+.metric {
+  font-size: 2.1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  letter-spacing: -0.03em;
+}
+
+.metric-caption {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: rgba(203, 213, 225, 0.85);
+  line-height: 1.4;
+}
 
 .visual {
   position: relative;
   overflow: hidden;
-  border-radius: 1.9rem;
-  border: none;
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.68), rgba(15, 23, 42, 0.32));
-  backdrop-filter: blur(4px) saturate(135%);
-  -webkit-backdrop-filter: blur(34px) saturate(135%);
-  box-shadow:
-    inset 0 0 0 1px rgba(148, 163, 184, 0.05),
-    0 60px 150px -90px rgba(3, 7, 18, 0.9);
-  isolation: isolate;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.35));
+  backdrop-filter: blur(18px);
 }
+
 .visual-header {
-  display: flex; align-items: center; gap: .5rem; padding: .75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid rgba(148, 163, 184, 0.08);
   background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), transparent);
 }
+
 .visual-header .dot {
-  display:inline-block; width: .5rem; height: .5rem; border-radius: 9999px;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
   background: linear-gradient(to right, #22d3ee, #6366f1);
 }
-.visual-header .title { margin-left: .5rem; font-size: .75rem; font-weight: 500; color: #e5e7eb; }
-.visual-body { padding: 1.1rem; }
+
+.visual-header .title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #e5e7eb;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.visual-body {
+  padding: 1.2rem 1.4rem;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
 
 .chip {
-  position: relative;
-  border: none;
   border-radius: 9999px;
-  padding: 0.4rem 1.1rem;
+  padding: 0.45rem 1.15rem;
   color: rgba(226, 232, 240, 0.92);
   background: linear-gradient(120deg, rgba(148, 163, 184, 0.18), rgba(148, 163, 184, 0.06));
-  backdrop-filter: blur(22px) saturate(135%);
-  -webkit-backdrop-filter: blur(22px) saturate(135%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    0 18px 40px -26px rgba(15, 23, 42, 0.78);
-  white-space: nowrap;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  font-size: 0.75rem;
 }
 
 .divider {
-  margin: 1rem 0; height: 1px; width: 100%;
-  background: linear-gradient(90deg, transparent, rgba(148,163,184,0.35), transparent);
+  margin: 1rem 0;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.35), transparent);
 }
 
-/* ====== Кейсы ====== */
 .case-card {
   border-radius: 1.2rem;
-  background: linear-gradient(145deg, rgba(2,6,23,0.55), rgba(15,23,42,0.35));
-  padding: .9rem 1rem;
+  background: linear-gradient(145deg, rgba(2, 6, 23, 0.55), rgba(15, 23, 42, 0.35));
+  padding: 0.95rem 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
   box-shadow:
     inset 0 0 0 1px rgba(148, 163, 184, 0.06),
-    0 25px 70px -50px rgba(3,7,18,0.8);
+    0 25px 70px -50px rgba(3, 7, 18, 0.8);
 }
+
 .case-head {
-  display:flex; justify-content:space-between; align-items:center; gap:.5rem; margin-bottom:.35rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
 }
+
 .badge {
-  font-size: .7rem; color: #e2e8f0; padding: .15rem .5rem; border-radius: 9999px;
+  font-size: 0.7rem;
+  color: #e2e8f0;
+  padding: 0.25rem 0.55rem;
+  border-radius: 9999px;
   background: linear-gradient(120deg, rgba(148, 163, 184, 0.22), rgba(148, 163, 184, 0.08));
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.delta.good { color: #86efac; font-weight: 600; font-size: .8rem; }
-.case-text { color: rgba(226,232,240,.9); font-size: .9rem; line-height: 1.35rem; }
 
-/* ====== Шаги внедрения ====== */
-.steps { display: grid; grid-template-columns: 1fr; gap: .65rem; margin-top:.25rem; }
-.steps li { display:flex; gap:.6rem; align-items:flex-start; }
+.delta {
+  font-size: 0.78rem;
+  color: rgba(125, 211, 252, 0.9);
+}
+
+.delta.good {
+  color: #86efac;
+  font-weight: 600;
+}
+
+.case-text {
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.features {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.feature {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(34, 211, 238, 0.35));
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.feature h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.35rem;
+}
+
+.feature p {
+  font-size: 0.9rem;
+  color: rgba(203, 213, 225, 0.85);
+  line-height: 1.45;
+}
+
+.steps {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+}
+
 .num {
-  display:inline-grid; place-items:center; width:1.35rem; height:1.35rem; border-radius:9999px;
-  background: linear-gradient(120deg, rgba(59,130,246,.35), rgba(34,211,238,.35));
-  color:#fff; font-size:.8rem; font-weight:600;
-}
-.step-title { color:#fff; font-weight:600; font-size:.9rem; line-height:1.2rem; }
-.step-text { color: rgba(226,232,240,.9); font-size:.85rem; line-height:1.2rem; }
-
-/* ====== Световые мазки для карточек ====== */
-.glass-card::before,
-.glass-card::after,
-.feature::before,
-.feature::after,
-.visual::before,
-.visual::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  z-index: 0;
-}
-.glass-card::before,
-.feature::before,
-.visual::before {
-  inset: -38% -45% -58%;
-  background: radial-gradient(75% 75% at 50% 30%, rgba(94, 234, 212, 0.16), transparent 72%);
-  filter: blur(48px);
-  opacity: 0.6;
-}
-.glass-card::after,
-.feature::after,
-.visual::after {
-  inset: -52% -55% -32%;
-  background: radial-gradient(85% 85% at 70% 82%, rgba(59, 130, 246, 0.18), transparent 78%);
-  filter: blur(60px);
-  opacity: 0.45;
-}
-.glass-card > *,
-.feature > *,
-.visual > * { position: relative; z-index: 1; }
-
-/* ====== Анимация входа ====== */
-@keyframes slidefade {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.animate-in {
-  animation: slidefade 700ms cubic-bezier(.2,.75,.25,1) 40ms both;
-  will-change: transform, opacity;
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.35), rgba(34, 211, 238, 0.35));
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-/* ====== Мобильные мелочи ====== */
-@media (max-width: 640px) {
-  /* на мобильном полностью отключаем анимацию как fallback,
-     даже если класс случайно попадёт */
-  .animate-in {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
+.step-title {
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.step-text {
+  color: rgba(203, 213, 225, 0.85);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.callout {
+  border-radius: 1.4rem;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: linear-gradient(150deg, rgba(15, 23, 42, 0.6), rgba(14, 116, 144, 0.25));
+  padding: 1.6rem;
+  box-shadow: 0 20px 45px -40px rgba(34, 211, 238, 0.65);
+}
+
+.callout h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+}
+
+.callout p {
+  color: rgba(203, 213, 225, 0.9);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.callout-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px;
+  background: rgba(34, 211, 238, 0.15);
+  color: #ecfeff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.callout-link:hover {
+  background: rgba(34, 211, 238, 0.25);
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #about-ikb {
+    transition: none;
   }
-  .visual-body { padding: .9rem; }
-  .chip { padding: .35rem .85rem; font-size: .8rem; }
+}
+
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .features {
+    gap: 1rem;
+  }
 }
 </style>

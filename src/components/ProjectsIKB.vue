@@ -1,120 +1,205 @@
-<!-- src/components/ProjectsIKB.vue -->
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from "vue"
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-type Stage = "Концепт" | "Макет" | "Прототип" | "MVP"
-type Project = { id: number; name: string; desc: string; stage: Stage }
+type Stage = 'concept' | 'prototype' | 'pilot' | 'mvp';
+
+type Project = {
+  id: number;
+  name: string;
+  description: string;
+  stage: Stage;
+  focus: string;
+  result: string;
+};
+
+const stageLabels: Record<Stage, string> = {
+  concept: 'Концепт',
+  prototype: 'Прототип',
+  pilot: 'Пилот',
+  mvp: 'MVP',
+};
+
+const badgeClass: Record<Stage, string> = {
+  concept: 'stage-concept',
+  prototype: 'stage-prototype',
+  pilot: 'stage-pilot',
+  mvp: 'stage-mvp',
+};
 
 const projects: Project[] = [
-  { id: 1, name: "УДОТ v.1", desc: "Свободно программируемое устройство: цифровые/аналоговые входы, управление нагрузкой, RS-485/DALI, питание 9–230 В.", stage: "Прототип" },
-  { id: 2, name: "УДОТ v.2", desc: "Контроллер гидрораспределителей спецтехники, цифровые/аналоговые входы, RS-485, питание 9–40 В.", stage: "Прототип" },
-  { id: 3, name: "МЁБИУС", desc: "Бесконтактное ёмкостное управление, скрытая установка. Патент RU68221.", stage: "MVP" },
-  { id: 4, name: "АВИС", desc: "Блок управления приводом ячейки КРУ(Э), автономные операции и дистанционный контроль.", stage: "Макет" },
-  { id: 5, name: "Конвертор Type-C", desc: "Преобразователь USB-C в RS-485/RS-232 и др.", stage: "Концепт" },
-  { id: 6, name: "Мобильное электричество", desc: "Прицеп-генератор для длительной автономной генерации энергии в поле.", stage: "MVP" },
-  { id: 7, name: "Автономный посёлок", desc: "Локальная энергосеть коттеджей (эффективно от 50 домов).", stage: "Концепт" },
-  { id: 8, name: "ИнтеРОС", desc: "Модульная система «Умного дома» с адаптацией под привычки.", stage: "MVP" },
-  { id: 9, name: "Свет без выключателей", desc: "Полная автоматика освещения с интеллектуальной подстройкой.", stage: "Прототип" },
-  { id: 10, name: "Световая волна", desc: "Освещение протяжённых участков по волновому принципу.", stage: "MVP" },
-  { id: 11, name: "Дом без электричества", desc: "Автономная солнечная установка, работает с 2012 года.", stage: "MVP" },
-  { id: 12, name: "Подводный пейджер", desc: "Поиск и связь с водолазами под водой.", stage: "Макет" },
-  { id: 13, name: "СИНУС", desc: "Диммируемая LED-лампа, совместима с патроном галогенок.", stage: "Прототип" },
-  { id: 14, name: "ДиВО", desc: "Дистанционное управление подсветкой рекламных конструкций.", stage: "Прототип" },
-  { id: 15, name: "Эмоциональное освещение", desc: "Режимы света по эмоциям (без ИИ).", stage: "Концепт" },
-  { id: 16, name: "Мобильный офис", desc: "Вагон-прицеп для автономной работы/проживания.", stage: "Концепт" },
-  { id: 17, name: "StarWire", desc: "Безопасный удлинитель: контроль температуры/нагрузки, автоотключение.", stage: "Прототип" },
-  { id: 18, name: "Birch-Lamp", desc: "Сенсорный светильник с «пламенем свечи», гасится дуновением.", stage: "MVP" },
-  { id: 19, name: "Million Lamp", desc: "Подвесной светильник из 1400 LED, управление ИК-пультом.", stage: "MVP" },
-  { id: 20, name: "ТУМБЛЕР", desc: "Открытая АСУ ТП нового поколения.", stage: "Концепт" },
-]
+  {
+    id: 1,
+    name: 'Роботизированная сварочная ячейка «Сварка-01»',
+    description:
+      'Комплекс для дуговой сварки корпусов насосов с адаптивным управлением, автоматической сменой оснастки и мониторингом геометрии шва.',
+    stage: 'prototype',
+    focus: 'Робот Fanuc M-20iD, позиционер на 2 оси, датчики слежения за дугой, интеграция с MES.',
+    result: 'Снижение брака на 32%, время цикла 6 минут, данные автоматически попадают в систему качества.',
+  },
+  {
+    id: 2,
+    name: 'AGV-платформа для транспортировки литья',
+    description:
+      'Самоходная тележка грузоподъёмностью 1,5 т для доставки заготовок между литейным и механообрабатывающим участками.',
+    stage: 'pilot',
+    focus: 'Лидар SLAM, система предотвращения столкновений, диспетчерский модуль с визуализацией маршрутов.',
+    result: 'Сокращение ручных перемещений на 70%, прозрачное расписание поставок для планово-диспетчерской службы.',
+  },
+  {
+    id: 3,
+    name: 'Модульный манипулятор для сборки тяговых батарей',
+    description:
+      'Концепт манипулятора с системой силового контроля и сменными захватами для аккумуляторных кассет электробусов.',
+    stage: 'concept',
+    focus: 'Кинематический анализ, цифровой двойник, проверка траекторий, расчёт силовых нагрузок.',
+    result: 'Подтверждение технической реализуемости, подготовка ТЗ для производства опытной партии.',
+  },
+  {
+    id: 4,
+    name: 'Интеллектуальный склад стальных листов',
+    description:
+      'MVP-система хранения и подачи листового металла с адресным размещением и автоматической инвентаризацией.',
+    stage: 'mvp',
+    focus: 'Шаттловая система, RFID-идентификация, API для ERP, модуль аналитики загрузки.',
+    result: 'Сокращение времени поиска партий на 45%, исключены ошибки при выдаче материала на участок.',
+  },
+  {
+    id: 5,
+    name: 'Учебно-демонстрационный стенд «Digital Twin Lab»',
+    description:
+      'Прототип стенда для подготовки операторов и инженеров: реальный манипулятор синхронизирован с цифровым двойником.',
+    stage: 'prototype',
+    focus: 'TwinCAT, имитация аварийных сценариев, база знаний с видеоподсказками.',
+    result: 'Сокращение времени обучения до запуска линии на 40%, уменьшение количества ошибок при наладке.',
+  },
+  {
+    id: 6,
+    name: 'Комплект retrofit для пресс-форм',
+    description:
+      'Решение для оцифровки пресс-форм на действующих линиях: датчики положения, мониторинг температуры и автоматика.',
+    stage: 'pilot',
+    focus: 'Унифицированные модули IO-Link, энергоэффективные приводы, интеграция с ПЛК Siemens.',
+    result: 'Время переналадки сокращено до 25 минут, получена аналитика по износу и качеству продукции.',
+  },
+  {
+    id: 7,
+    name: 'Система техзрения для контроля пайки плат',
+    description:
+      'MVP-решение на базе нейросетей для проверки качества пайки в производстве электроники с учётом вариативности изделий.',
+    stage: 'mvp',
+    focus: 'AI-модель на TensorRT, линия обслуживания 18 снимков/сек, интерфейс для инженера-визуалиста.',
+    result: 'Автоматизация 95% операций контроля, повышение обнаружения дефектов до 99,2%.',
+  },
+  {
+    id: 8,
+    name: 'Цех цифровой калибровки роботов',
+    description:
+      'Концепт мультистанции для точной калибровки промышленных роботов с использованием лазерных трекеров и облачной базы.',
+    stage: 'concept',
+    focus: 'Методика калибровки, расчёт окупаемости, архитектура данных и сценарии обслуживания.',
+    result: 'Формирование дорожной карты на 3 года, подготовка инвестиционного пакета для промышленного партнёра.',
+  },
+];
 
-/** Появление секции */
-const containerEl = ref<HTMLElement | null>(null)
-const visible = ref(false)
-let observer: IntersectionObserver | null = null
+const stageFilter = [
+  { value: 'all', label: 'Все проекты' },
+  { value: 'concept', label: 'Концепт' },
+  { value: 'prototype', label: 'Прототип' },
+  { value: 'pilot', label: 'Пилот' },
+  { value: 'mvp', label: 'MVP' },
+] as const;
 
-const activate = () => {
-  if (visible.value) return
-  visible.value = true
-  observer?.disconnect()
-  observer = null
-}
+type FilterValue = (typeof stageFilter)[number]['value'];
 
-const registerObserver = () => {
-  if (visible.value) return
-  if (typeof IntersectionObserver === "undefined") {
-    activate()
-    return
+const activeStage = ref<FilterValue>('all');
+const search = ref('');
+const sortKey = ref<'stage' | 'name'>('stage');
+
+const containerEl = ref<HTMLElement | null>(null);
+const visible = ref(false);
+
+let observer: IntersectionObserver | null = null;
+
+const attachObserver = () => {
+  if (!containerEl.value || visible.value) return;
+
+  observer?.disconnect();
+
+  if (typeof IntersectionObserver === 'undefined') {
+    visible.value = true;
+    return;
   }
-  const el = containerEl.value
-  if (!el) return
 
   observer = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
+    (entries) => {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
-          activate()
+          visible.value = true;
+          observer?.disconnect();
+          observer = null;
+          break;
         }
-      })
+      }
     },
-    { threshold: 0.25, rootMargin: "0px 0px -10% 0px" },
-  )
-  observer.observe(el)
-}
+    { threshold: 0.2 },
+  );
+
+  observer.observe(containerEl.value);
+};
 
 onMounted(() => {
-  const prefersReduced =
-    window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false
-  if (prefersReduced) {
-    visible.value = true
-    return
+  const prefersReducedMotion =
+    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+
+  if (prefersReducedMotion) {
+    visible.value = true;
+    return;
   }
+
   if (containerEl.value) {
-    registerObserver()
+    attachObserver();
   } else {
-    requestAnimationFrame(registerObserver)
+    requestAnimationFrame(attachObserver);
   }
-})
+});
 
 onBeforeUnmount(() => {
-  observer?.disconnect()
-  observer = null
-})
-
-/** Фильтр, поиск, сортировка */
-const ALL: Stage[] = ["Концепт", "Макет", "Прототип", "MVP"]
-const active = ref<Set<Stage>>(new Set<Stage>(["Концепт"])) // по умолчанию — только «Концепт», чтобы меньше карточек
-const q = ref("")
-const sortKey = ref<"title" | "stage">("stage")
-
-const toggleStage = (s: Stage) => {
-  if (active.value.has(s)) active.value.delete(s)
-  else active.value.add(s)
-  active.value = new Set(active.value)
-}
-const clearFilters = () => { active.value = new Set(); q.value = "" }
+  observer?.disconnect();
+  observer = null;
+});
 
 const counts = computed(() => {
-  const c: Record<Stage, number> = { Концепт: 0, Макет: 0, Прототип: 0, MVP: 0 }
-  for (const p of projects) c[p.stage]++
-  return c
-})
-
-const filtered = computed(() => {
-  const hasFilter = active.value.size > 0
-  const byStage = hasFilter ? projects.filter(p => active.value.has(p.stage)) : projects
-  const text = q.value.trim().toLowerCase()
-  const byText = text
-    ? byStage.filter(p => (p.name + " " + p.desc).toLowerCase().includes(text))
-    : byStage
-
-  const rank: Record<Stage, number> = { Концепт: 1, Макет: 2, Прототип: 3, MVP: 4 }
-  if (sortKey.value === "stage") {
-    return [...byText].sort((a, b) => rank[b.stage] - rank[a.stage] || a.name.localeCompare(b.name))
-  } else {
-    return [...byText].sort((a, b) => a.name.localeCompare(b.name))
+  const base: Record<Stage, number> = { concept: 0, prototype: 0, pilot: 0, mvp: 0 };
+  for (const project of projects) {
+    base[project.stage] += 1;
   }
-})
+  return base;
+});
+
+const filteredProjects = computed(() => {
+  const term = search.value.trim().toLowerCase();
+  let list = projects;
+
+  if (activeStage.value !== 'all') {
+    list = list.filter((project) => project.stage === activeStage.value);
+  }
+
+  if (term) {
+    list = list.filter((project) =>
+      (project.name + project.description + project.focus + project.result).toLowerCase().includes(term),
+    );
+  }
+
+  const stageOrder: Record<Stage, number> = { concept: 3, prototype: 2, pilot: 1, mvp: 0 };
+
+  if (sortKey.value === 'stage') {
+    return [...list].sort(
+      (a, b) => stageOrder[b.stage] - stageOrder[a.stage] || a.name.localeCompare(b.name, 'ru'),
+    );
+  }
+
+  return [...list].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+});
 </script>
 
 <template>
@@ -124,242 +209,467 @@ const filtered = computed(() => {
     class="page-section relative overflow-hidden px-4 md:px-8 lg:px-12"
     :class="visible ? 'animate-in opacity-100 translate-y-0' : 'opacity-0 translate-y-6'"
   >
-    <!-- те же неоновые подсветки, что в AboutIKB -->
     <div
       class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
       style="background: radial-gradient(0% 60% at 50% 50%, #060A19, transparent)"
+      aria-hidden="true"
     ></div>
     <div
       class="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full blur-3xl"
       style="background: radial-gradient(60% 60% at 50% 50%, rgba(99,102,241,0.15), transparent)"
+      aria-hidden="true"
     ></div>
 
     <div class="relative z-10 mx-auto max-w-6xl">
-      <!-- Шапка секции -->
       <div class="mb-8 text-center">
         <p class="mb-2 text-[12px] uppercase tracking-[0.3em] text-teal-300/80">
-          ИКБ — Инновационность • Конфиденциальность • Безопасность
+          Портфель проектов
         </p>
-        <h2 class="text-3xl md:text-5xl font-semibold leading-tight">
-          <span class="bg-gradient-to-r from-teal-300 via-cyan-200 to-white bg-clip-text text-transparent">
-            РЕШЕНИЯ И ПРОЕКТЫ
-          </span>
+        <h2 class="text-3xl font-semibold text-white md:text-4xl">
+          Решения конструкторского бюро для промышленности
         </h2>
-        <p class="mx-auto mt-3 max-w-3xl text-slate-300/80">
-          Контрактная разработка и ОКР. Каталог R&amp;D-инициатив от концепта до MVP с упором на надёжность,
-          отказоустойчивость и инженерную элегантность.
+        <p class="mt-3 text-base text-slate-300/85 md:text-lg">
+          От концептов и пилотов до серийных внедрений — каждая разработка проходит верификацию на
+          цифровых моделях и на производстве заказчика.
         </p>
       </div>
 
-      <!-- Панель управления -->
-      <div class="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <!-- Сегментированный фильтр -->
-        <div class="flex w-full flex-wrap items-center gap-2">
-          <div class="segmented rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur">
-            <button
-              v-for="s in ALL"
-              :key="s"
-              @click="toggleStage(s)"
-              class="seg-btn"
-              :class="active.has(s) ? 'seg-active' : ''"
-            >
-              <span class="inline-flex items-center gap-1">
-                <span class="h-2 w-2 rounded-full"
-                  :class="{
-                    'bg-rose-300/90 shadow-[0_0_10px] shadow-rose-400/40': s==='Концепт',
-                    'bg-amber-300/90 shadow-[0_0_10px] shadow-amber-400/40': s==='Макет',
-                    'bg-cyan-300/90  shadow-[0_0_10px] shadow-cyan-400/40' : s==='Прототип',
-                    'bg-emerald-300/90 shadow-[0_0_10px] shadow-emerald-400/40': s==='MVP',
-                  }"></span>
-                <span class="uppercase tracking-[0.2em] text-[11px]">{{ s }}</span>
-                <span class="ml-1 rounded-md border border-white/15 px-1.5 text-[10px] opacity-80">{{ counts[s] }}</span>
-              </span>
-            </button>
+      <div class="panel">
+        <div class="panel-glow" aria-hidden="true"></div>
+        <div class="panel-content">
+          <div class="filters">
+            <div class="segmented" role="tablist" aria-label="Фильтр по стадиям">
+              <button
+                v-for="stage in stageFilter"
+                :key="stage.value"
+                type="button"
+                class="seg-btn"
+                :class="{ 'seg-active': activeStage === stage.value }"
+                @click="activeStage = stage.value"
+              >
+                <span>{{ stage.label }}</span>
+                <span v-if="stage.value !== 'all'" class="seg-count">
+                  {{ counts[stage.value as Stage] }}
+                </span>
+              </button>
+            </div>
+
+            <div class="filter-tools">
+              <label class="search-field">
+                <span class="sr-only">Поиск по проектам</span>
+                <input
+                  v-model="search"
+                  type="search"
+                  placeholder="Поиск по названию или описанию"
+                  autocomplete="off"
+                />
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </label>
+
+              <label class="sort-field">
+                <span>Сортировка</span>
+                <select v-model="sortKey">
+                  <option value="stage">По стадии</option>
+                  <option value="name">По названию</option>
+                </select>
+              </label>
+            </div>
           </div>
 
-          <button
-            v-if="active.size || q"
-            @click="clearFilters"
-            class="ml-1 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.2em] text-slate-300/80 hover:text-rose-300 hover:border-rose-400/40 transition"
+          <transition-group
+            name="gridfade"
+            tag="div"
+            class="project-grid"
+            aria-live="polite"
+            aria-label="Список проектов"
           >
-            Сбросить
-          </button>
-        </div>
+            <article v-for="project in filteredProjects" :key="project.id" class="project-card">
+              <div class="project-card__header">
+                <h3 class="project-title">{{ project.name }}</h3>
+                <span class="stage-badge" :class="badgeClass[project.stage]">
+                  {{ stageLabels[project.stage] }}
+                </span>
+              </div>
 
-        <!-- Поиск и сортировка -->
-        <div class="flex w-full items-center gap-2 md:w-auto">
-          <div class="relative grow md:grow-0">
-            <input
-              v-model="q"
-              type="text"
-              placeholder="Поиск по названию или описанию…"
-              class="w-full md:w-72 rounded-xl border border-white/10 bg-white/5 px-3 py-2 pr-10 text-sm text-white placeholder:text-white/40 outline-none focus:border-teal-400/50 focus:ring-2 focus:ring-teal-400/20"
-            />
-            <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/40">⌕</span>
-          </div>
+              <p class="project-description">
+                {{ project.description }}
+              </p>
 
-          <select
-            v-model="sortKey"
-            class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-teal-400/50 focus:ring-2 focus:ring-teal-400/20"
+              <div class="project-meta">
+                <div class="chip">
+                  <span class="chip-label">Фокус</span>
+                  <span class="chip-value">{{ project.focus }}</span>
+                </div>
+                <div class="chip">
+                  <span class="chip-label">Результат</span>
+                  <span class="chip-value">{{ project.result }}</span>
+                </div>
+              </div>
+            </article>
+          </transition-group>
+
+          <div
+            v-if="filteredProjects.length === 0"
+            class="empty-state"
           >
-            <option value="stage">Сначала зрелые</option>
-            <option value="title">По алфавиту</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Сетка карточек -->
-      <transition-group
-        name="gridfade"
-        tag="div"
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
-      >
-        <article
-          v-for="p in filtered"
-          :key="p.id"
-          class="panel group relative rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur transition-transform duration-300 hover:-translate-y-0.5"
-        >
-          <!-- градиентный бордер-свет -->
-          <div class="panel-glow pointer-events-none absolute inset-0 rounded-2xl"></div>
-
-          <div class="flex items-start justify-between gap-3">
-            <h3 class="text-base font-semibold text-white group-hover:text-teal-200 transition">
-              {{ p.name }}
-            </h3>
-            <span
-              class="stage-badge"
-              :class="{
-                'stage-concept': p.stage==='Концепт',
-                'stage-maket': p.stage==='Макет',
-                'stage-proto': p.stage==='Прототип',
-                'stage-mvp'  : p.stage==='MVP',
-              }"
-            >{{ p.stage }}</span>
+            Мы пока не реализовали проекты по такому фильтру, но инженерная команда подготовит
+            индивидуальное решение под вашу задачу.
           </div>
-
-          <p class="mt-2 text-sm leading-snug text-slate-300/85">
-            {{ p.desc }}
-          </p>
-        </article>
-      </transition-group>
-
-      <div
-        v-if="filtered.length === 0"
-        class="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-slate-300/80"
-      >
-        Ничего не найдено. Попробуй изменить фильтры или запрос.
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* ==== ФОН — как у AboutIKB, направление сверху вниз ==== */
 #projects-ikb {
   position: relative;
 }
 
-/* Неоновые пятна (как в AboutIKB) */
-#projects-ikb > .pointer-events-none { z-index: 0; }
-
-/* Плавное появление секции */
-.animate-in { transition: all .9s cubic-bezier(.22,.61,.36,1); }
-@media (prefers-reduced-motion: reduce) {
-  .animate-in { transition: none !important; }
+#projects-ikb > .pointer-events-none {
+  z-index: 0;
 }
 
-
-/* Сегментированный фильтр */
-.segmented {
-  display: inline-flex;
-  gap: 2px;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 4px 20px rgba(0,0,0,.25);
-}
-.seg-btn {
-  position: relative;
-  padding: .5rem .75rem;
-  border-radius: 0.9rem;
-  color: rgba(255,255,255,.8);
-  transition: all .25s ease;
-  border: 1px solid transparent;
-}
-.seg-btn:hover { color: #ccfbf1; }
-.seg-active {
-  color: #d1fffb;
-  background: linear-gradient(180deg, rgba(20,184,166,.18), rgba(20,184,166,.05));
-  border-color: rgba(45,212,191,.45);
-  box-shadow:
-    inset 0 0 0 999px rgba(255,255,255,.02),
-    0 0 24px rgba(20,184,166,.25);
+.animate-in {
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-/* Карточка с «стеклянным» градиентным бордером и мягким свечением */
 .panel {
   position: relative;
+  border-radius: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.32));
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
 }
-.panel:before {
-  content: "";
+
+.panel-glow {
   position: absolute;
   inset: 0;
-  border-radius: 1rem;
-  padding: 1px;
-  background: linear-gradient(140deg,
-    rgba(20,184,166,.45),
-    rgba(56,189,248,.35),
-    rgba(255,255,255,.18) 70%,
-    rgba(20,184,166,.25));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none;
-}
-.panel-glow {
   background:
-    radial-gradient(120px 60px at right -20px top -20px, rgba(20,184,166,.18), transparent 60%),
-    radial-gradient(140px 80px at left -20px bottom -20px, rgba(56,189,248,.16), transparent 60%);
+    radial-gradient(120px 80px at 85% -20px, rgba(45, 212, 191, 0.18), transparent 65%),
+    radial-gradient(160px 120px at 15% 110%, rgba(59, 130, 246, 0.18), transparent 70%);
+  opacity: 0.6;
   filter: blur(0.5px);
 }
 
-/* Бейдж стадии */
-.stage-badge {
-  font-size: 10.5px;
-  letter-spacing: .18em;
+.panel-content {
+  position: relative;
+  z-index: 1;
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2vw, 1.75rem);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  padding: 0.35rem;
+  border-radius: 1.1rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.seg-btn {
+  position: relative;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.9rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: .35rem .55rem;
-  border-radius: .6rem;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.85);
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.seg-btn:hover {
+  color: #ccfbf1;
+}
+
+.seg-btn:focus-visible {
+  outline: 2px solid rgba(45, 212, 191, 0.6);
+  outline-offset: 3px;
+}
+
+.seg-active {
+  color: #d1fffb;
+  background: linear-gradient(180deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.05));
+  border-color: rgba(45, 212, 191, 0.45);
+  box-shadow:
+    inset 0 0 0 999px rgba(255, 255, 255, 0.02),
+    0 0 24px rgba(20, 184, 166, 0.25);
+}
+
+.seg-count {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.filter-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.search-field {
+  position: relative;
+  display: block;
+}
+
+.search-field input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 0.65rem 0.9rem 0.65rem 2.6rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-field input::placeholder {
+  color: rgba(148, 163, 184, 0.55);
+}
+
+.search-field input:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.55);
+  outline-offset: 2px;
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.search-field .icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgba(148, 163, 184, 0.65);
+  pointer-events: none;
+}
+
+.sort-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.65);
+}
+
+.sort-field select {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 0.55rem 0.9rem;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  appearance: none;
+}
+
+.sort-field select:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.5);
+  outline-offset: 2px;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.project-grid {
+  display: grid;
+  gap: clamp(1.25rem, 2.8vw, 1.9rem);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .filter-tools {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .search-field {
+    flex: 1;
+  }
+
+  .sort-field {
+    font-size: 0.72rem;
+  }
+
+  .project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.project-card {
+  position: relative;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: linear-gradient(175deg, rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0.3));
+  padding: clamp(1.2rem, 2.8vw, 1.6rem);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 35px 80px -60px rgba(15, 23, 42, 0.95);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.project-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.project-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f8fafc;
+  line-height: 1.3;
+}
+
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
   white-space: nowrap;
 }
-.stage-concept  { border-color: rgba(244,63,94,.45);  color: rgba(252,165,165,.95); box-shadow: 0 0 22px rgba(244,63,94,.20) inset; }
-.stage-maket    { border-color: rgba(251,191,36,.45); color: rgba(254,215,170,.95); box-shadow: 0 0 22px rgba(251,191,36,.20) inset; }
-.stage-proto    { border-color: rgba(34,211,238,.45); color: rgba(165,243,252,.95); box-shadow: 0 0 22px rgba(34,211,238,.22) inset; }
-.stage-mvp      { border-color: rgba(16,185,129,.45); color: rgba(167,243,208,.95); box-shadow: 0 0 22px rgba(16,185,129,.22) inset; }
 
-/* Анимация карточек при фильтрации */
-.gridfade-enter-active, .gridfade-leave-active {
+.stage-concept {
+  border-color: rgba(244, 63, 94, 0.45);
+  color: rgba(252, 165, 165, 0.95);
+  box-shadow: 0 0 22px rgba(244, 63, 94, 0.2) inset;
+}
+
+.stage-prototype {
+  border-color: rgba(59, 130, 246, 0.45);
+  color: rgba(191, 219, 254, 0.95);
+  box-shadow: 0 0 22px rgba(59, 130, 246, 0.2) inset;
+}
+
+.stage-pilot {
+  border-color: rgba(251, 191, 36, 0.45);
+  color: rgba(254, 215, 170, 0.95);
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.2) inset;
+}
+
+.stage-mvp {
+  border-color: rgba(16, 185, 129, 0.45);
+  color: rgba(167, 243, 208, 0.95);
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.2) inset;
+}
+
+.project-description {
+  color: rgba(203, 213, 225, 0.9);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.project-meta {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.chip {
+  display: block;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.5);
+  padding: 0.65rem 0.85rem;
+}
+
+.chip-label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.6);
+  margin-bottom: 0.2rem;
+}
+
+.chip-value {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(226, 232, 240, 0.92);
+  line-height: 1.4;
+}
+
+.empty-state {
+  margin-top: 1.5rem;
+  border-radius: 1.35rem;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.45);
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.gridfade-enter-active,
+.gridfade-leave-active {
   transition: all 240ms ease, opacity 240ms ease, transform 240ms ease;
 }
-.gridfade-enter-from, .gridfade-leave-to {
+
+.gridfade-enter-from,
+.gridfade-leave-to {
   opacity: 0;
-  transform: translateY(6px) scale(.985);
+  transform: translateY(6px) scale(0.985);
 }
 
-/* Фокус-кольца */
-:focus-visible {
-  outline: 2px solid rgba(45,212,191,.6);
-  outline-offset: 2px;
-  border-radius: .8rem;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* На совсем узких экранах делаем чуть более компактные карточки */
 @media (max-width: 640px) {
-  .seg-btn { padding: .45rem .6rem; }
+  .seg-btn {
+    padding: 0.45rem 0.7rem;
+  }
+
+  .sort-field {
+    justify-content: space-between;
+  }
 }
 </style>
-

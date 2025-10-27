@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const SplineScene = defineAsyncComponent(() => import('../components/ui/SplineScene.vue'));
@@ -8,7 +8,13 @@ const Certificates = defineAsyncComponent(() => import('../components/Certificat
 const PartnersMarquee = defineAsyncComponent(() => import('../components/PartnersMarquee.vue'));
 const ScrollFramesCanvas = defineAsyncComponent(() => import('../components/ScrollFramesCanvas.vue'));
 
-const heroHeading = '��孮�����, ����� ᮥ������ ���� � ������';
+const heroHeading = 'Проектируем роботизированные комплексы для промышленности';
+const heroChips = [
+  'Роботизированные линии',
+  'R&D и прототипы',
+  'Цифровые двойники',
+  'Индустрия 4.0',
+];
 
 const heroSection = ref<HTMLElement | null>(null);
 const aboutSection = ref<HTMLElement | null>(null);
@@ -23,11 +29,14 @@ const projectsActive = ref(false);
 const certsActive = ref(false);
 const framesActive = ref(false);
 const prefersReducedMotion = ref(false);
+const isMobileDevice = ref(false);
 
 type VisibilityState = { state: typeof heroActive; once: boolean };
 
 let observer: IntersectionObserver | null = null;
 let observedTargets: WeakMap<Element, VisibilityState> = new WeakMap();
+let pointerQuery: MediaQueryList | null = null;
+let motionQuery: MediaQueryList | null = null;
 
 const observeSection = (el: HTMLElement | null, state: typeof heroActive, once = true) => {
   if (!el || !observer) return;
@@ -36,6 +45,9 @@ const observeSection = (el: HTMLElement | null, state: typeof heroActive, once =
 };
 
 const setupObserver = () => {
+  observer?.disconnect();
+  observedTargets = new WeakMap();
+
   if (typeof IntersectionObserver === 'undefined') {
     heroActive.value = true;
     aboutActive.value = true;
@@ -44,9 +56,6 @@ const setupObserver = () => {
     framesActive.value = true;
     return;
   }
-
-  observer?.disconnect();
-  observedTargets = new WeakMap();
 
   observer = new IntersectionObserver(
     (entries) => {
@@ -72,17 +81,61 @@ const setupObserver = () => {
   observeSection(framesSection.value, framesActive);
 };
 
-onMounted(async () => {
-  prefersReducedMotion.value =
-    window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
+const applyPointerProfile = () => {
+  const pointerBasedMatch = pointerQuery?.matches ?? false;
+  isMobileDevice.value = pointerBasedMatch || window.innerWidth <= 768;
+};
 
-  if (prefersReducedMotion.value) {
+const applyMotionPreference = (matches: boolean) => {
+  prefersReducedMotion.value = matches;
+  if (matches) {
+    observer?.disconnect();
+    observer = null;
+    observedTargets = new WeakMap();
     heroActive.value = true;
     aboutActive.value = true;
     projectsActive.value = true;
     certsActive.value = true;
     framesActive.value = false;
     isHeadingVisible.value = true;
+  }
+};
+
+const onPointerChange = () => applyPointerProfile();
+const onMotionPreferenceChange = (event: MediaQueryListEvent) => {
+  const wasReduced = prefersReducedMotion.value;
+  applyMotionPreference(event.matches);
+  if (wasReduced && !event.matches) {
+    requestAnimationFrame(() => {
+      setupObserver();
+    });
+  }
+};
+
+onMounted(async () => {
+  pointerQuery = window.matchMedia?.('(pointer: coarse)') ?? null;
+  motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null;
+
+  applyPointerProfile();
+  if (pointerQuery) {
+    if (typeof pointerQuery.addEventListener === 'function') {
+      pointerQuery.addEventListener('change', onPointerChange);
+    } else if (typeof pointerQuery.addListener === 'function') {
+      pointerQuery.addListener(onPointerChange);
+    }
+  }
+  window.addEventListener('resize', applyPointerProfile, { passive: true });
+
+  applyMotionPreference(motionQuery?.matches ?? false);
+  if (motionQuery) {
+    if (typeof motionQuery.addEventListener === 'function') {
+      motionQuery.addEventListener('change', onMotionPreferenceChange);
+    } else if (typeof motionQuery.addListener === 'function') {
+      motionQuery.addListener(onMotionPreferenceChange);
+    }
+  }
+
+  if (prefersReducedMotion.value) {
     return;
   }
 
@@ -94,6 +147,25 @@ onBeforeUnmount(() => {
   observer?.disconnect();
   observer = null;
   observedTargets = new WeakMap();
+
+  if (pointerQuery) {
+    if (typeof pointerQuery.removeEventListener === 'function') {
+      pointerQuery.removeEventListener('change', onPointerChange);
+    } else if (typeof pointerQuery.removeListener === 'function') {
+      pointerQuery.removeListener(onPointerChange);
+    }
+  }
+  window.removeEventListener('resize', applyPointerProfile);
+
+  if (motionQuery) {
+    if (typeof motionQuery.removeEventListener === 'function') {
+      motionQuery.removeEventListener('change', onMotionPreferenceChange);
+    } else if (typeof motionQuery.removeListener === 'function') {
+      motionQuery.removeListener(onMotionPreferenceChange);
+    }
+  }
+  motionQuery = null;
+  pointerQuery = null;
 });
 
 watch(heroActive, (active) => {
@@ -104,14 +176,20 @@ watch(heroActive, (active) => {
   }
 });
 
-const shouldRenderSpline = computed(() => heroActive.value && !prefersReducedMotion.value);
-const shouldRenderFrames = computed(() => framesActive.value && !prefersReducedMotion.value);
+const shouldRenderSpline = computed(
+  () => heroActive.value && !prefersReducedMotion.value && !isMobileDevice.value,
+);
+const shouldRenderFrames = computed(
+  () => framesActive.value && !prefersReducedMotion.value && !isMobileDevice.value,
+);
 const marqueeActive = computed(() => heroActive.value);
 </script>
 
 <template>
   <section ref="heroSection" class="Hero page-section" id="Hero">
-    <div class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-32 pb-20 text-white sm:min-h-screen md:min-h-[120vh] md:pt-40 md:pb-24">
+    <div
+      class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-28 pb-16 text-white sm:min-h-screen md:min-h-[120vh] md:pt-36 md:pb-20"
+    >
       <div class="absolute inset-0">
         <Suspense v-if="shouldRenderSpline">
           <template #default>
@@ -131,7 +209,7 @@ const marqueeActive = computed(() => heroActive.value);
         class="pointer-events-none relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center gap-8 px-6 text-center sm:px-8 md:gap-10 lg:max-w-6xl lg:px-16"
       >
         <span class="ikb-highlight text-lg font-semibold uppercase tracking-[0.35em]">
-          ������樮���-���������᪮� ���
+          Инженерное конструкторское бюро
         </span>
 
         <h1 class="text-4xl font-bold leading-tight md:text-6xl" :aria-label="heroHeading">
@@ -141,23 +219,25 @@ const marqueeActive = computed(() => heroActive.value);
         </h1>
 
         <p class="text-base text-slate-200 md:text-lg">
-          �� ᮧ��� ��஢�� � 䨧��᪨� ஡�⮢ ��� ������, ����� ��६���� �����६����
-          �������� �㤨��� � ����������� �� ��⨭�. � ���� �஥��� ������, �������� �
-          �����⢥��� ��⥫���� ࠡ���� �����, �⮡� ���� ����॥ �⠭������� ॠ��묨
-          �த�⠬�.
+          Мы объединяем инженеров-конструкторов, разработчиков электроники и ПО, чтобы ускорять
+          цифровую трансформацию производств. Проектируем роботизированные комплексы, тестовые стенды
+          и системы управления под ключ.
         </p>
 
         <div class="pointer-events-auto">
           <a href="#contact" class="ikb-button">
-            ��易���� � ����
+            Связаться с нами
           </a>
         </div>
 
         <div class="flex flex-wrap justify-center gap-3 text-sm text-slate-300 md:text-base">
-          <span class="ikb-chip">���ࠨ����� ��⥬�</span>
-          <span class="ikb-chip">R&D � ���⨯�஢����</span>
-          <span class="ikb-chip">������ਠ��� ������</span>
-          <span class="ikb-chip">�����⢥��� ��⥫����</span>
+          <span
+            v-for="chip in heroChips"
+            :key="chip"
+            class="ikb-chip"
+          >
+            {{ chip }}
+          </span>
         </div>
       </div>
 
@@ -251,15 +331,19 @@ const marqueeActive = computed(() => heroActive.value);
       </Suspense>
     </template>
     <div v-else-if="prefersReducedMotion" class="frames-fallback">
-      <p>Анимация недоступна в режиме уменьшенного движения.</p>
-      <p class="frames-fallback-note">Прокрутите страницу, чтобы открыть форму обратной связи.</p>
+      <p>Анимация отключена в соответствии с настройками «Предпочесть уменьшенное движение».</p>
+      <p class="frames-fallback-note">Мы подготовим и отправим деморолик по запросу, чтобы вы ничего не пропустили.</p>
+    </div>
+    <div v-else-if="isMobileDevice" class="frames-fallback">
+      <p>Интерактивная демонстрация отключена на мобильных устройствах, чтобы избежать перезагрузки страницы.</p>
+      <p class="frames-fallback-note">Оставьте заявку, и мы пришлём видео с обзором комплекса.</p>
     </div>
     <div v-else class="frames-skeleton"></div>
   </section>
 </template>
 
 <style scoped>
-.partners{
+.partners {
   width: 100%;
   position: absolute;
   z-index: 30;
@@ -365,9 +449,6 @@ const marqueeActive = computed(() => heroActive.value);
     animation: none;
   }
 }
-
-
-
 
 .ikb-highlight {
   background: linear-gradient(90deg, #5eead4, #60a5fa, #a78bfa, #5eead4);
@@ -516,4 +597,3 @@ const marqueeActive = computed(() => heroActive.value);
   position: relative;
 }
 </style>
-

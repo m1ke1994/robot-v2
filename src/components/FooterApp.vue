@@ -1,9 +1,9 @@
 <script setup>
-const currentYear = new Date().getFullYear()
+const currentYear = new Date().getFullYear();
 </script>
 
 <template>
-  <footer class="footer-shell relative overflow-hidden">
+  <footer id="contact" class="footer-shell relative overflow-hidden">
     <div aria-hidden="true" class="footer-gradient pointer-events-none"></div>
 
     <div class="mx-auto flex max-w-6xl flex-col gap-12 px-6 py-16 md:px-8">
@@ -12,7 +12,7 @@ const currentYear = new Date().getFullYear()
           <div class="flex items-center gap-3">
             <img
               src="/logo.svg"
-              alt="ИКБ Robotics"
+              alt="Логотип ИКБ Robotics"
               loading="lazy"
               decoding="async"
               class="h-9 w-9 shrink-0 rounded-xl border border-white/10 bg-white/5 p-2 shadow-lg shadow-cyan-500/10"
@@ -23,8 +23,10 @@ const currentYear = new Date().getFullYear()
           </div>
 
           <p class="text-sm leading-6 text-slate-300/85">
-            Разрабатываем цифровые и аппаратные решения для умных производств, роботизированных линий и
-            IoT-инфраструктуры. Помогаем пройти путь от R&D до внедрения в цехах.
+            Инженерное конструкторское бюро, которое объединяет механиков, электронщиков и разработчиков
+            ПО. Создаём роботизированные комплексы, цифровые двойники и системы управления для
+            высокотехнологичных производств. Берём на себя весь цикл — от исследования и проектирования
+            до ввода в эксплуатацию и сопровождения.
           </p>
 
           <div class="flex flex-wrap gap-4 text-sm text-slate-400">
@@ -34,8 +36,12 @@ const currentYear = new Date().getFullYear()
             </a>
             <a class="inline-flex items-center gap-2 transition hover:text-white" href="tel:+79991234567">
               <span class="h-2 w-2 rounded-full bg-indigo-400/80"></span>
-              +7 999 123 45 67
+              +7&nbsp;999&nbsp;123‑45‑67
             </a>
+            <span class="inline-flex items-center gap-2">
+              <span class="h-2 w-2 rounded-full bg-emerald-400/80"></span>
+              Екатеринбург · UTC+5
+            </span>
           </div>
         </div>
 
@@ -44,24 +50,25 @@ const currentYear = new Date().getFullYear()
             <h3 class="footer-heading">Навигация</h3>
             <ul class="space-y-2 text-slate-300/80">
               <li><a class="footer-link" href="#Hero">Главная</a></li>
+              <li><a class="footer-link" href="#about">О бюро</a></li>
               <li><a class="footer-link" href="#projects">Проекты</a></li>
               <li><a class="footer-link" href="#cert">Сертификаты</a></li>
-              <li><a class="footer-link" href="#frames">Скролл-спрайт</a></li>
+              <li><a class="footer-link" href="#frames">Контакты</a></li>
             </ul>
           </div>
 
           <div class="footer-column">
-            <h3 class="footer-heading">Сервисы</h3>
+            <h3 class="footer-heading">Компетенции</h3>
             <ul class="space-y-2 text-slate-300/80">
-              <li><span class="footer-link">Интеграция MES / SCADA</span></li>
-              <li><span class="footer-link">R&D лаборатории</span></li>
-              <li><span class="footer-link">Прототипирование</span></li>
-              <li><span class="footer-link">Техподдержка 24/7</span></li>
+              <li><span class="footer-link">Разработка мехатронных узлов</span></li>
+              <li><span class="footer-link">SCADA и MES‑интеграция</span></li>
+              <li><span class="footer-link">Цифровые двойники и симуляция</span></li>
+              <li><span class="footer-link">Промышленная аналитика 24/7</span></li>
             </ul>
           </div>
 
           <div class="footer-column">
-            <h3 class="footer-heading">Контакты</h3>
+            <h3 class="footer-heading">Мы онлайн</h3>
             <ul class="space-y-2 text-slate-300/80">
               <li>
                 <a class="footer-link" href="https://t.me/ikb_robotics" target="_blank" rel="noopener">
@@ -74,10 +81,12 @@ const currentYear = new Date().getFullYear()
                 </a>
               </li>
               <li>
-                <a class="footer-link" href="#callback">Обратная связь</a>
+                <a class="footer-link" href="https://www.youtube.com" target="_blank" rel="noopener">
+                  YouTube
+                </a>
               </li>
               <li>
-                <span class="footer-link">Краснодар · Москва</span>
+                <span class="footer-link">Ежедневно с 09:00 до 21:00</span>
               </li>
             </ul>
           </div>
@@ -88,7 +97,7 @@ const currentYear = new Date().getFullYear()
         <span>© {{ currentYear }} ИКБ Robotics. Все права защищены.</span>
         <div class="flex flex-wrap gap-4">
           <a class="footer-link" href="/privacy.pdf" download>Политика конфиденциальности</a>
-          <a class="footer-link" href="/safety.pdf" download>Техника безопасности</a>
+          <a class="footer-link" href="/safety.pdf" download>Стандарты промышленной безопасности</a>
         </div>
       </div>
     </div>

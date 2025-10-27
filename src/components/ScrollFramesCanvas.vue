@@ -5,49 +5,62 @@ import { ref, onMounted, onBeforeUnmount } from "vue"
 type Props = {
   src?: string
   poster?: string
-  /** Базовая скорость проигрывания */
-  baseRate?: number
-  /** Турбо-скорость при нажатии "Открыть форму" */
+  /** Турбо-скорость при клике на CTA */
   turboRate?: number
-  /** Базовая длина секции в vh для десктопа */
+  /** Скорость авто-проигрывания при попадании в зону видимости (рекомендуем 1.9–2.1) */
+  autoRate?: number
+  /** Высота дорожки (vh) */
   desktopVH?: number
-  /** Длина для планшета */
   tabletVH?: number
-  /** Длина для мобилки */
   mobileVH?: number
+  /** Показать встроенные CTA-кнопки внутри секции */
+  showInlineCtas?: boolean
+  /** Порог видимости секции для автозапуска (0..1) */
+  autoplayThreshold?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   src: "/robot.mp4",
   poster: "",
-  baseRate: 1.25,
-  turboRate: 1.9,
+  turboRate: 3.5,
+  autoRate: 3.5,
   desktopVH: 200,
   tabletVH: 170,
   mobileVH: 150,
+  showInlineCtas: true,
+  autoplayThreshold: 0.35,
 })
 
 const emit = defineEmits<{
   (e: "submit", payload: { name: string; email: string; phone: string }): void
 }>()
 
+/* Refs */
 const containerEl = ref<HTMLElement | null>(null)
 const stickyEl = ref<HTMLElement | null>(null)
 const videoEl = ref<HTMLVideoElement | null>(null)
 
+/* UI state */
 const playing = ref(false)
 const playedOnce = ref(false)
 const formVisible = ref(false)
-const showControls = ref(false)
-const turboActive = ref(false)
+/** Если автозапуск не удался — показываем нашу большую кнопку «Запустить», а не системные контролы */
+const needUserStart = ref(false)
 
-/** динамическая высота секции по брейкпоинтам */
+/* Флаги */
+let autoTried = false
+let autoStarted = false
+let io: IntersectionObserver | null = null
+let rafFlag = false
+
+/* Адаптивная длина секции */
 const sectionVH = ref<number>(props.desktopVH)
 function recalcVH() {
   const w = typeof window !== "undefined" ? window.innerWidth : 1280
   sectionVH.value = w < 640 ? props.mobileVH : w < 1024 ? props.tabletVH : props.desktopVH
 }
 
+/* Форма */
 const name = ref("")
 const email = ref("")
 const phone = ref("")
@@ -80,171 +93,225 @@ async function onSubmit(e: Event) {
   }
 }
 
-/** ——— управление формой ——— */
-function openFormTurbo() {
-  formVisible.value = true
-  turboActive.value = true
-  setPlaybackRate(props.turboRate)
-  tryPlay()
-}
-function openFormSoft() {
-  formVisible.value = true
-}
 function closeForm() {
   formVisible.value = false
-  turboActive.value = false
-  if (!frozen) setPlaybackRate(props.baseRate)
 }
 
-/** ——— заморозка на последнем кадре ——— */
+/* Заморозка последнего кадра */
 let freezeAt = 0
 let frozen = false
 
+function computeFreezeAt() {
+  const v = videoEl.value
+  freezeAt = Math.max(0, (v?.duration ?? 0) - 0.04)
+  frozen = false
+}
+
 function onLoadedMetadata() {
+  computeFreezeAt()
+}
+
+function onError() {
+  // В случае ошибки источника — сразу форма
+  formVisible.value = true
+}
+
+/** ждём метаданные (duration) перед стартом */
+function ensureMetadata(): Promise<void> {
+  const v = videoEl.value
+  if (!v) return Promise.resolve()
+  if (v.readyState >= 1) return Promise.resolve()
+  return new Promise((res) => {
+    const h = () => { v.removeEventListener("loadedmetadata", h); res() }
+    v.addEventListener("loadedmetadata", h, { once: true })
+  })
+}
+
+/* ——— Жёсткое удержание playbackRate (для Safari/iOS) ——— */
+let rateGuardStop = false
+let rateGuardDesired = 1.0
+let rateGuardStartTS = 0
+
+function startRateGuard(v: HTMLVideoElement, desired: number) {
+  rateGuardDesired = desired
+  rateGuardStop = false
+  rateGuardStartTS = performance.now()
+
+  const tick = () => {
+    if (rateGuardStop) return
+    if (performance.now() - rateGuardStartTS < 1200) {
+      try { if (v.playbackRate !== desired) v.playbackRate = desired } catch {}
+      requestAnimationFrame(tick)
+    } else {
+      v.addEventListener("ratechange", onRateChangeEnforce)
+    }
+  }
+  requestAnimationFrame(tick)
+}
+
+function stopRateGuard(v?: HTMLVideoElement | null) {
+  rateGuardStop = true
+  if (v) v.removeEventListener("ratechange", onRateChangeEnforce)
+}
+
+function onRateChangeEnforce() {
   const v = videoEl.value
   if (!v) return
-  freezeAt = Math.max(0, (v.duration ?? 0) - 0.04)
+  if (Math.abs(v.playbackRate - rateGuardDesired) > 0.01) {
+    try { v.playbackRate = rateGuardDesired } catch {}
+  }
+}
+
+/** Универсальный запуск с нужной скоростью. Без показа нативных контролов */
+async function playWithRate(rate: number | undefined): Promise<boolean> {
+  const v = videoEl.value
+  if (!v) return false
+  formVisible.value = false
   frozen = false
-  setPlaybackRate(props.baseRate)
+  needUserStart.value = false
+  try { v.pause() } catch {}
+  try { v.currentTime = 0 } catch {}
+  await ensureMetadata()
+  computeFreezeAt()
+
+  v.muted = true
+  const desired = Math.max(0.1, Math.min(rate ?? 1.0, 4.0)) // safety clamp
+  try { v.playbackRate = desired } catch {}
+
+  try {
+    playing.value = true
+    startRateGuard(v, desired)
+    await v.play()
+    return true
+  } catch {
+    // Никаких системных контролов — только наш CTA
+    playing.value = false
+    stopRateGuard(v)
+    needUserStart.value = true
+    return false
+  }
+}
+
+/** CTA: старт с нуля на турбо-скорости */
+async function playFromStartTurbo() {
+  await playWithRate(props.turboRate)
+}
+
+/** Автозапуск — подтверждаем только после успешного .play() */
+async function tryAutoplayOnce() {
+  if (playedOnce.value || autoStarted) return
+  autoTried = true
+  const ok = await playWithRate(props.autoRate)
+  if (ok) autoStarted = true
+}
+
+/** Завершение: заморозить на последнем кадре + открыть форму */
+function freezeAndOpenForm() {
+  const v = videoEl.value
+  if (!v) return
+  try { v.pause() } catch {}
+  try { v.currentTime = freezeAt || Math.max(0, (v.duration || 0) - 0.04) } catch {}
+  frozen = true
+  playedOnce.value = true
+  playing.value = false
+  stopRateGuard(v)
+  formVisible.value = true
 }
 
 function onTimeUpdate() {
   const v = videoEl.value
   if (!v) return
   if (!frozen && freezeAt > 0 && v.currentTime >= freezeAt) {
-    v.pause()
-    try { v.currentTime = freezeAt } catch {}
-    frozen = true
-    playedOnce.value = true
-    formVisible.value = true
-    playing.value = false
+    freezeAndOpenForm()
   }
 }
 
-function onError() {
-  formVisible.value = true
+function onEnded() {
+  if (!frozen) freezeAndOpenForm()
 }
 
-function setPlaybackRate(rate: number) {
-  const v = videoEl.value
-  if (!v) return
-  v.playbackRate = Math.max(0.1, rate || 1.0)
+/** Сразу к финалу (оставить последний кадр + форму) */
+function skipVideo() {
+  freezeAndOpenForm()
 }
 
-async function tryPlay() {
-  const v = videoEl.value
-  if (!v) return
-  // если уже заморожено — не стартуем
-  if (playedOnce.value && frozen) return
-  try {
-    v.muted = true
-    showControls.value = false
-    playing.value = true
-    await v.play()
-  } catch {
-    showControls.value = true
-    playing.value = false
-  }
-}
-
-/** Полный сброс для повторного проигрывания при возвращении к секции */
-function resetForReplay() {
-  const v = videoEl.value
-  formVisible.value = false
-  turboActive.value = false
-  playedOnce.value = false
-  frozen = false
-  freezeAt = 0
-  if (v) {
-    try { v.pause() } catch {}
-    try { v.currentTime = 0 } catch {}
-    setPlaybackRate(props.baseRate)
-  }
-  playing.value = false
-  // стартуем заново
-  tryPlay()
-}
-
-/** наблюдаем вход/выход секции и перезапускаем видео при повторном входе */
-let io: IntersectionObserver | null = null
-let inView = false
-let wasOut = true // чтобы отличать "возвращение"
-
-function handleIO(entries: IntersectionObserverEntry[]) {
-  const e = entries[0]
-  const nowInView = !!e?.isIntersecting && e.intersectionRatio >= 0.6
-  if (nowInView && (!inView || wasOut)) {
-    // вернулись к секции — перезапуск
-    resetForReplay()
-    wasOut = false
-  } else if (!nowInView && inView) {
-    // ушли от секции — отметим, что вышли
-    wasOut = true
-  }
-  inView = nowInView
-}
-
+/** Хоткей: Esc закрывает форму */
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Escape" && formVisible.value) closeForm()
 }
 
+/* ---------- Надёжное определение видимости секции ---------- */
+
+function visibleRatioOfViewport(el: HTMLElement): number {
+  const r = el.getBoundingClientRect()
+  const vh = window.innerHeight || 0
+  const visiblePx = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0))
+  return vh > 0 ? visiblePx / vh : 0
+}
+
+function checkVisibilityAndAutoplay() {
+  if (!containerEl.value || playedOnce.value || autoStarted) return
+  const ratio = visibleRatioOfViewport(containerEl.value)
+  if (ratio >= (props.autoplayThreshold ?? 0.35)) {
+    tryAutoplayOnce()
+  }
+}
+
+function onScrollOrResize() {
+  if (rafFlag) return
+  rafFlag = true
+  requestAnimationFrame(() => {
+    rafFlag = false
+    checkVisibilityAndAutoplay()
+  })
+}
+
+function setupIntersection() {
+  if (!containerEl.value) return
+  io = new IntersectionObserver(
+    () => checkVisibilityAndAutoplay(),
+    {
+      root: null,
+      rootMargin: "0px 0px -20% 0px",
+      threshold: [0, 0.01, 0.25, 0.5, 0.75, 1],
+    }
+  )
+  io.observe(containerEl.value)
+}
+
+function teardownIntersection() {
+  if (io) {
+    io.disconnect()
+    io = null
+  }
+}
+
+/** Монтирование */
 onMounted(() => {
   recalcVH()
   window.addEventListener("resize", recalcVH, { passive: true })
-
-  const prefersReduced =
-    typeof window !== "undefined" &&
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
-  if (prefersReduced) {
-    formVisible.value = true
-  } else {
-    if (stickyEl.value) {
-      io = new IntersectionObserver(handleIO, {
-        threshold: [0, 0.2, 0.4, 0.6, 0.8, 1],
-      })
-      io.observe(stickyEl.value)
-    }
-    // первый старт, если компонент уже в зоне видимости
-    requestAnimationFrame(() => tryPlay())
-  }
-
   window.addEventListener("keydown", onKeydown)
+
+  setupIntersection()
+  window.addEventListener("scroll", onScrollOrResize, { passive: true })
+  window.addEventListener("resize", onScrollOrResize, { passive: true })
+
+  requestAnimationFrame(checkVisibilityAndAutoplay)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", recalcVH)
-  if (io && stickyEl.value) io.unobserve(stickyEl.value)
   window.removeEventListener("keydown", onKeydown)
+  window.removeEventListener("scroll", onScrollOrResize)
+  window.removeEventListener("resize", onScrollOrResize)
+  teardownIntersection()
 })
 
-/** ручной запуск при блокировке автоплея */
-async function manualPlay() {
-  const v = videoEl.value
-  if (!v) return
-  try {
-    showControls.value = false
-    playing.value = true
-    await v.play()
-  } catch {
-    formVisible.value = true
-  }
+/* Публичный метод для внешних кнопок */
+function playAndOpenForm() {
+  playFromStartTurbo()
 }
-
-/** мгновенно к финалу */
-function skipVideo() {
-  const v = videoEl.value
-  if (v) {
-    if (freezeAt <= 0 && v.duration) freezeAt = Math.max(0, v.duration - 0.04)
-    try { v.currentTime = freezeAt || v.duration - 0.04 } catch {}
-    v.pause()
-  }
-  frozen = true
-  playedOnce.value = true
-  formVisible.value = true
-  playing.value = false
-}
+defineExpose({ playAndOpenForm })
 </script>
 
 <template>
@@ -258,7 +325,7 @@ function skipVideo() {
       class="sticky top-0 h-[100vh] w-full overflow-hidden"
       style="contain: strict"
     >
-      <!-- Фоновое видео (остаётся на последнем кадре; форма поверх) -->
+      <!-- Видео -->
       <div class="absolute inset-0">
         <video
           ref="videoEl"
@@ -268,42 +335,38 @@ function skipVideo() {
           playsinline
           webkit-playsinline
           muted
-          :controls="showControls"
           disablepictureinpicture
-          controlslist="nodownload noplaybackrate noremoteplayback"
-          class="h-full w-full object-cover"
+          controlslist="nodownload noplaybackrate noremoteplayback nofullscreen"
+          class="h-full w-full object-cover select-none"
           @loadedmetadata="onLoadedMetadata"
           @timeupdate="onTimeUpdate"
+          @ended="onEnded"
           @error="onError"
+          @contextmenu.prevent
+          @touchstart.passive
+          @touchmove.prevent="false"
         />
 
-        <!-- Верхняя панель статуса/кнопок (лёгкая, не перегружает) -->
+        <!-- Верхняя панель статуса (без нативных контролов) -->
         <div class="pointer-events-none absolute inset-x-0 top-3 sm:top-4 z-10 flex justify-center">
           <div
             class="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[11px] text-white/80 backdrop-blur sm:text-xs"
           >
-            <span v-if="!formVisible && !playing && !showControls">Готовим видео…</span>
+            <span v-if="!formVisible && !playedOnce && !autoTried">Готово к показу</span>
+            <span v-else-if="!formVisible && !playedOnce && autoTried && !playing && !needUserStart">Пытаемся автозапуск…</span>
             <span v-else-if="playing && !formVisible">
-              Воспроизведение ×{{ (videoEl?.playbackRate || 1).toFixed(2) }}
+              Проигрывание ×{{ Number((videoEl && videoEl.playbackRate) || 1).toFixed(2) }}
             </span>
-            <span v-else-if="formVisible && !frozen">Форма открыта • видео идёт</span>
-            <span v-else-if="formVisible && frozen">Видео завершено</span>
-            <span v-else>Автовоспроизведение недоступно</span>
+            <span v-else-if="formVisible && !playedOnce">Форма открыта</span>
+            <span v-else-if="formVisible && playedOnce">Видео завершено</span>
 
             <span class="hidden sm:inline text-white/40">•</span>
 
+            <!-- CTA -->
             <button
               class="hidden sm:inline rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
-              v-if="showControls && !playing && !formVisible"
-              @click.prevent="manualPlay"
-            >
-              Запустить
-            </button>
-
-            <button
-              class="hidden sm:inline rounded-full bg-white/10 px-2 py-1 text-white transition hover:bg-white/20"
-              v-if="!formVisible && !frozen"
-              @click.prevent="openFormSoft"
+              v-if="!formVisible"
+              @click.prevent="playFromStartTurbo"
             >
               Открыть форму
             </button>
@@ -318,13 +381,19 @@ function skipVideo() {
           </div>
         </div>
 
-        <!-- Плавающая кнопка "Открыть форму" (крупная для мобилок) -->
-        <div class="absolute bottom-4 right-3 z-10 sm:bottom-5 sm:right-4 md:bottom-6 md:right-6">
+        <!-- Большая кастомная кнопка запуска, если автоплей не удался -->
+      
+
+        <!-- CTA (мобилки) -->
+        <div
+          v-if="props.showInlineCtas && !formVisible"
+          class="absolute bottom-4 left-3 right-3 z-10 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3 md:bottom-6 md:right-6"
+        >
           <button
-            class="rounded-full bg-black/55 px-4 py-2 text-xs font-semibold text-white backdrop-blur-lg ring-1 ring-white/15 shadow-lg transition hover:bg-black/65 active:scale-[0.99] sm:text-sm"
-            @click="openFormTurbo"
+            class="rounded-xl bg-gradient-to-r from-cyan-400/90 to-indigo-400/90 px-4 py-2 text-sm font-semibold text-black shadow-lg ring-1 ring-white/10 transition hover:from-cyan-300 hover:to-indigo-300 active:scale-[0.99]"
+            @click="playFromStartTurbo"
           >
-            Открыть форму (×{{ turboRate.toFixed(1) }})
+            Заказать консультацию
           </button>
         </div>
       </div>
@@ -354,7 +423,7 @@ function skipVideo() {
             </h3>
 
             <div class="mb-3">
-              <label class="mb-1 block text-xs text-white/80 sm:text-sm">Телефон</label>
+              <label class="mb-1 block text-xs text-white/80 sm:text-sm">Имя</label>
               <input
                 v-model="name"
                 type="text"
@@ -416,6 +485,7 @@ function skipVideo() {
 </template>
 
 <style scoped>
+/* Анимация формы */
 .zoom-fade-enter-active, .zoom-fade-leave-active {
   transition: opacity 320ms ease, transform 320ms ease;
 }
@@ -424,10 +494,28 @@ function skipVideo() {
   transform: scale(0.98) translateY(6px);
 }
 
-section, .sticky {
+/* Жёстко прячем любые нативные контролы у видео */
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-volume-slider,
+video::-webkit-media-controls-timeline,
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display,
+video::-webkit-media-controls-fullscreen-button,
+video::-webkit-media-controls-mute-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  -webkit-appearance: none !important;
+}
+
+/* Без лишних полос прокрутки внутри */
+section, .sticky, video {
   overflow: clip;
 }
 
-/* Тап-хайлайт убираем — приятнее на мобилке */
+/* Убираем tap highlight на мобильных */
 button { -webkit-tap-highlight-color: transparent; }
 </style>

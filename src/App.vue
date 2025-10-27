@@ -1,23 +1,17 @@
 <script setup>
-import { RouterView } from 'vue-router'
 import HeaderApp from './components/HeaderApp.vue'
 import FooterApp from './components/FooterApp.vue'
-
+import HomeView from './views/HomeView.vue'
 </script>
 
 <template>
   <div class="app-shell relative flex min-h-screen flex-col">
     <div aria-hidden="true" class="app-overlay pointer-events-none fixed inset-0 -z-20"></div>
     <div aria-hidden="true" class="app-noise pointer-events-none fixed inset-0 -z-10"></div>
-
     <HeaderApp />
-
     <main class="flex w-full grow flex-col text-slate-100">
-      <RouterView />
+      <HomeView />
     </main>
-
- 
-
     <footer>
       <FooterApp />
     </footer>

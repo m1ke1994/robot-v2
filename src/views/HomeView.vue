@@ -1,5 +1,6 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useActiveSectionStore } from '../stores/activeSection';
 
 const SplineScene = defineAsyncComponent(() => import('../components/ui/SplineScene.vue'));
 const ProjectsIKB = defineAsyncComponent(() => import('../components/ProjectsIKB.vue'));
@@ -7,7 +8,6 @@ const AboutIKB = defineAsyncComponent(() => import('../components/AboutIKB.vue')
 const Certificates = defineAsyncComponent(() => import('../components/Certificates.vue'));
 const PartnersMarquee = defineAsyncComponent(() => import('../components/PartnersMarquee.vue'));
 const ScrollFramesCanvas = defineAsyncComponent(() => import('../components/ScrollFramesCanvas.vue'));
-
 const heroHeading = 'Проектируем роботизированные комплексы для промышленности';
 const heroChips = [
   'Роботизированные линии',
@@ -15,6 +15,7 @@ const heroChips = [
   'Цифровые двойники',
   'Индустрия 4.0',
 ];
+
 
 const heroSection = ref<HTMLElement | null>(null);
 const aboutSection = ref<HTMLElement | null>(null);
@@ -31,12 +32,15 @@ const framesActive = ref(false);
 const prefersReducedMotion = ref(false);
 const isMobileDevice = ref(false);
 
+const activeSectionStore = useActiveSectionStore();
+
 type VisibilityState = { state: typeof heroActive; once: boolean };
 
 let observer: IntersectionObserver | null = null;
 let observedTargets: WeakMap<Element, VisibilityState> = new WeakMap();
 let pointerQuery: MediaQueryList | null = null;
 let motionQuery: MediaQueryList | null = null;
+let scrollRaf = 0;
 
 const observeSection = (el: HTMLElement | null, state: typeof heroActive, once = true) => {
   if (!el || !observer) return;
@@ -84,6 +88,7 @@ const setupObserver = () => {
 const applyPointerProfile = () => {
   const pointerBasedMatch = pointerQuery?.matches ?? false;
   isMobileDevice.value = pointerBasedMatch || window.innerWidth <= 768;
+  scheduleActiveSectionUpdate();
 };
 
 const applyMotionPreference = (matches: boolean) => {
@@ -99,6 +104,7 @@ const applyMotionPreference = (matches: boolean) => {
     framesActive.value = false;
     isHeadingVisible.value = true;
   }
+  scheduleActiveSectionUpdate();
 };
 
 const onPointerChange = () => applyPointerProfile();
@@ -113,6 +119,7 @@ const onMotionPreferenceChange = (event: MediaQueryListEvent) => {
 };
 
 onMounted(async () => {
+  activeSectionStore.setSection('Hero');
   pointerQuery = window.matchMedia?.('(pointer: coarse)') ?? null;
   motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null;
 
@@ -125,6 +132,8 @@ onMounted(async () => {
     }
   }
   window.addEventListener('resize', applyPointerProfile, { passive: true });
+  window.addEventListener('scroll', scheduleActiveSectionUpdate, { passive: true });
+  window.addEventListener('resize', scheduleActiveSectionUpdate, { passive: true });
 
   applyMotionPreference(motionQuery?.matches ?? false);
   if (motionQuery) {
@@ -135,13 +144,16 @@ onMounted(async () => {
     }
   }
 
+  await nextTick();
+  scheduleActiveSectionUpdate();
+
   if (prefersReducedMotion.value) {
     return;
   }
 
-  await nextTick();
   setupObserver();
 });
+
 
 onBeforeUnmount(() => {
   observer?.disconnect();
@@ -155,6 +167,8 @@ onBeforeUnmount(() => {
       pointerQuery.removeListener(onPointerChange);
     }
   }
+  window.removeEventListener('scroll', scheduleActiveSectionUpdate);
+  window.removeEventListener('resize', scheduleActiveSectionUpdate);
   window.removeEventListener('resize', applyPointerProfile);
 
   if (motionQuery) {
@@ -164,6 +178,13 @@ onBeforeUnmount(() => {
       motionQuery.removeListener(onMotionPreferenceChange);
     }
   }
+
+  if (scrollRaf) {
+    window.cancelAnimationFrame(scrollRaf);
+    scrollRaf = 0;
+  }
+
+  activeSectionStore.reset();
   motionQuery = null;
   pointerQuery = null;
 });
@@ -179,16 +200,50 @@ watch(heroActive, (active) => {
 const shouldRenderSpline = computed(
   () => heroActive.value && !prefersReducedMotion.value && !isMobileDevice.value,
 );
-const shouldRenderFrames = computed(
-  () => framesActive.value && !prefersReducedMotion.value && !isMobileDevice.value,
-);
+const shouldRenderFrames = computed(() => framesActive.value && !prefersReducedMotion.value);
 const marqueeActive = computed(() => heroActive.value);
+
+const sectionsForNavigation = [
+  { id: 'Hero', ref: heroSection },
+  { id: 'about', ref: aboutSection },
+  { id: 'projects', ref: projectsSection },
+  { id: 'cert', ref: certSection },
+  { id: 'frames', ref: framesSection },
+];
+
+const updateActiveSection = () => {
+  if (typeof window === 'undefined') return;
+
+  const scrollPosition = window.scrollY + window.innerHeight * 0.35;
+  let currentId = 'Hero';
+
+  for (let i = sectionsForNavigation.length - 1; i >= 0; i -= 1) {
+    const descriptor = sectionsForNavigation[i];
+    const el = descriptor.ref.value;
+    if (!el) continue;
+    const top = el.offsetTop;
+    if (scrollPosition >= top) {
+      currentId = descriptor.id;
+      break;
+    }
+  }
+
+  activeSectionStore.setSection(currentId);
+};
+
+const scheduleActiveSectionUpdate = () => {
+  if (scrollRaf) return;
+  scrollRaf = window.requestAnimationFrame(() => {
+    scrollRaf = 0;
+    updateActiveSection();
+  });
+};
 </script>
 
 <template>
   <section ref="heroSection" class="Hero page-section" id="Hero">
     <div
-      class="relative flex min-h-[110vh] w-full items-center justify-center overflow-hidden pt-28 pb-16 text-white sm:min-h-screen md:min-h-[120vh] md:pt-36 md:pb-20"
+      class="relative flex min-h-[100vh] w-full items-center justify-center overflow-hidden pt-20 pb-12 text-white sm:min-h-screen md:min-h-[110vh] md:pt-28 md:pb-16"
     >
       <div class="absolute inset-0">
         <Suspense v-if="shouldRenderSpline">
@@ -219,14 +274,14 @@ const marqueeActive = computed(() => heroActive.value);
         </h1>
 
         <p class="text-base text-slate-200 md:text-lg">
-          Мы объединяем инженеров-конструкторов, разработчиков электроники и ПО, чтобы ускорять
-          цифровую трансформацию производств. Проектируем роботизированные комплексы, тестовые стенды
-          и системы управления под ключ.
+          РњС‹ РѕР±СЉРµРґРёРЅСЏРµРј РёРЅР¶РµРЅРµСЂРѕРІ-РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРѕРІ, СЂР°Р·СЂР°Р±РѕС‚С‡РёРєРѕРІ СЌР»РµРєС‚СЂРѕРЅРёРєРё Рё РџРћ, С‡С‚РѕР±С‹ СѓСЃРєРѕСЂСЏС‚СЊ
+          С†РёС„СЂРѕРІСѓСЋ С‚СЂР°РЅСЃС„РѕСЂРјР°С†РёСЋ РїСЂРѕРёР·РІРѕРґСЃС‚РІ. РџСЂРѕРµРєС‚РёСЂСѓРµРј СЂРѕР±РѕС‚РёР·РёСЂРѕРІР°РЅРЅС‹Рµ РєРѕРјРїР»РµРєСЃС‹, С‚РµСЃС‚РѕРІС‹Рµ СЃС‚РµРЅРґС‹
+          Рё СЃРёСЃС‚РµРјС‹ СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕРґ РєР»СЋС‡.
         </p>
 
         <div class="pointer-events-auto">
           <a href="#contact" class="ikb-button">
-            Связаться с нами
+            РЎРІСЏР·Р°С‚СЊСЃСЏ СЃ РЅР°РјРё
           </a>
         </div>
 
@@ -331,12 +386,8 @@ const marqueeActive = computed(() => heroActive.value);
       </Suspense>
     </template>
     <div v-else-if="prefersReducedMotion" class="frames-fallback">
-      <p>Анимация отключена в соответствии с настройками «Предпочесть уменьшенное движение».</p>
-      <p class="frames-fallback-note">Мы подготовим и отправим деморолик по запросу, чтобы вы ничего не пропустили.</p>
-    </div>
-    <div v-else-if="isMobileDevice" class="frames-fallback">
-      <p>Интерактивная демонстрация отключена на мобильных устройствах, чтобы избежать перезагрузки страницы.</p>
-      <p class="frames-fallback-note">Оставьте заявку, и мы пришлём видео с обзором комплекса.</p>
+      <p>РђРЅРёРјР°С†РёСЏ РѕС‚РєР»СЋС‡РµРЅР° РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё В«РџСЂРµРґРїРѕС‡РµСЃС‚СЊ СѓРјРµРЅСЊС€РµРЅРЅРѕРµ РґРІРёР¶РµРЅРёРµВ».</p>
+      <p class="frames-fallback-note">РњС‹ РїРѕРґРіРѕС‚РѕРІРёРј Рё РѕС‚РїСЂР°РІРёРј РґРµРјРѕСЂРѕР»РёРє РїРѕ Р·Р°РїСЂРѕСЃСѓ, С‡С‚РѕР±С‹ РІС‹ РЅРёС‡РµРіРѕ РЅРµ РїСЂРѕРїСѓСЃС‚РёР»Рё.</p>
     </div>
     <div v-else class="frames-skeleton"></div>
   </section>
@@ -597,3 +648,7 @@ const marqueeActive = computed(() => heroActive.value);
   position: relative;
 }
 </style>
+
+
+
+
